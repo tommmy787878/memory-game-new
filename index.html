@@ -1,0 +1,384 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2113.65">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Arial; color: #1a1a1a; -webkit-text-stroke: #1a1a1a}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Arial; color: #1a1a1a; -webkit-text-stroke: #1a1a1a; min-height: 15.0px}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Hiragino Sans'; color: #1a1a1a; -webkit-text-stroke: #1a1a1a}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Arial; color: #103cc0; -webkit-text-stroke: #103cc0}
+    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Arial; color: #1a1a1a; -webkit-text-stroke: #1a1a1a; background-color: #ffffff}
+    span.s1 {font-kerning: none; background-color: #ffffff}
+    span.s2 {font: 13.0px 'Hiragino Sans'; font-kerning: none; background-color: #ffffff}
+    span.s3 {font-kerning: none}
+    span.s4 {font: 13.0px Arial; font-kerning: none; background-color: #ffffff}
+    span.s5 {font-kerning: none; color: #1a1a1a; background-color: #ffffff; -webkit-text-stroke: 0px #1a1a1a}
+    span.s6 {text-decoration: underline ; font-kerning: none; color: #103cc0; -webkit-text-stroke: 0px #103cc0}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="ja"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;title&gt;</span><span class="s2">神経衰弱</span><span class="s1">&lt;/title&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;style&gt;</span></p>
+<p class="p1"><span class="s1">body { margin:0; font-family:sans-serif; }</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* ===== </span><span class="s2">スタート画面</span><span class="s1"> ===== */</span></p>
+<p class="p1"><span class="s1">#startScreen{</span></p>
+<p class="p1"><span class="s1">position:fixed;width:100%;height:100%;</span></p>
+<p class="p1"><span class="s1">background:#fff;</span></p>
+<p class="p1"><span class="s1">display:flex;</span></p>
+<p class="p1"><span class="s1">flex-direction:column;</span></p>
+<p class="p1"><span class="s1">justify-content:center;</span></p>
+<p class="p1"><span class="s1">align-items:center;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.title{</span></p>
+<p class="p1"><span class="s1">font-size:48px;</span></p>
+<p class="p1"><span class="s1">letter-spacing:6px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:20px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p3"><span class="s4">/* </span><span class="s1">★強化スタートボタン</span><span class="s4"> */</span></p>
+<p class="p1"><span class="s1">#startBtn{</span></p>
+<p class="p1"><span class="s1">margin-top:25px;</span></p>
+<p class="p1"><span class="s1">padding:16px 50px;</span></p>
+<p class="p1"><span class="s1">font-size:20px;</span></p>
+<p class="p1"><span class="s1">background:#000;</span></p>
+<p class="p1"><span class="s1">color:#fff;</span></p>
+<p class="p1"><span class="s1">border:none;</span></p>
+<p class="p1"><span class="s1">letter-spacing:2px;</span></p>
+<p class="p1"><span class="s1">transition:0.2s;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">#startBtn:active{</span></p>
+<p class="p1"><span class="s1">transform:scale(0.95);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* ===== </span><span class="s2">ゲーム</span><span class="s1"> ===== */</span></p>
+<p class="p1"><span class="s1">#game{</span></p>
+<p class="p1"><span class="s1">display:none;</span></p>
+<p class="p1"><span class="s1">background:#0f172a;</span></p>
+<p class="p1"><span class="s1">color:white;</span></p>
+<p class="p1"><span class="s1">min-height:100vh;</span></p>
+<p class="p1"><span class="s1">text-align:center;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.board{</span></p>
+<p class="p1"><span class="s1">display:grid;</span></p>
+<p class="p1"><span class="s1">grid-template-columns:repeat(5,1fr);</span></p>
+<p class="p1"><span class="s1">gap:10px;</span></p>
+<p class="p1"><span class="s1">padding:10px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.card{ aspect-ratio:3/4; perspective:800px; }</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.inner{</span></p>
+<p class="p1"><span class="s1">width:100%;height:100%;</span></p>
+<p class="p1"><span class="s1">transition:0.35s;</span></p>
+<p class="p1"><span class="s1">transform-style:preserve-3d;</span></p>
+<p class="p1"><span class="s1">position:relative;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.card.flip .inner{ transform:rotateY(180deg); }</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.face{</span></p>
+<p class="p1"><span class="s1">position:absolute;</span></p>
+<p class="p1"><span class="s1">width:100%;height:100%;</span></p>
+<p class="p1"><span class="s1">backface-visibility:hidden;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.face img{</span></p>
+<p class="p1"><span class="s1">width:100%;</span></p>
+<p class="p1"><span class="s1">height:100%;</span></p>
+<p class="p1"><span class="s1">border-radius:10px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">.front{ transform:rotateY(180deg); }</span></p>
+<p class="p1"><span class="s1">.taken{ opacity:0.4; }</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* ===== </span><span class="s2">結果画面</span><span class="s1"> ===== */</span></p>
+<p class="p1"><span class="s1">#result{</span></p>
+<p class="p1"><span class="s1">position:fixed;</span></p>
+<p class="p1"><span class="s1">top:0;left:0;</span></p>
+<p class="p1"><span class="s1">width:100%;height:100%;</span></p>
+<p class="p1"><span class="s1">display:none;</span></p>
+<p class="p1"><span class="s1">justify-content:center;</span></p>
+<p class="p1"><span class="s1">align-items:center;</span></p>
+<p class="p1"><span class="s1">flex-direction:column;</span></p>
+<p class="p1"><span class="s1">background:rgba(0,0,0,0.9);</span></p>
+<p class="p1"><span class="s1">color:white;</span></p>
+<p class="p1"><span class="s1">z-index:999;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">#resultText{</span></p>
+<p class="p1"><span class="s1">font-size:36px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:10px;</span></p>
+<p class="p1"><span class="s1">animation:pop 0.6s ease;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">@keyframes pop{</span></p>
+<p class="p1"><span class="s1">0%{ transform:scale(0.5); opacity:0; }</span></p>
+<p class="p1"><span class="s1">100%{ transform:scale(1); opacity:1; }</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">#highScore{ margin-bottom:15px; }</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">button,select{</span></p>
+<p class="p1"><span class="s1">margin-top:10px;</span></p>
+<p class="p1"><span class="s1">padding:10px 20px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* </span><span class="s2">紙吹雪</span><span class="s1"> */</span></p>
+<p class="p1"><span class="s1">.confetti{</span></p>
+<p class="p1"><span class="s1">position:fixed;</span></p>
+<p class="p1"><span class="s1">width:8px;height:12px;</span></p>
+<p class="p1"><span class="s1">animation:fall linear forwards;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">@keyframes fall{</span></p>
+<p class="p1"><span class="s1">to{ transform:translateY(100vh) rotate(720deg); }</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- </span><span class="s2">スタート</span><span class="s1"> --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="startScreen"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;h1 class="title"&gt;</span><span class="s2">神経衰弱</span><span class="s1">&lt;/h1&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;select id="difficulty"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;option value="easy"&gt;</span><span class="s2">かんたん</span><span class="s1">&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1">&lt;option value="normal" selected&gt;</span><span class="s2">ふつう</span><span class="s1">&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1">&lt;option value="hard"&gt;</span><span class="s2">むずかしい</span><span class="s1">&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/select&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;button id="startBtn" onclick="startGame()"&gt;</span><span class="s2">スタート</span><span class="s1">&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- </span><span class="s2">ゲーム</span><span class="s1"> --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="game"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;h2 id="turn"&gt;&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1">&lt;p id="score"&gt;&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="board" id="board"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- </span><span class="s2">結果</span><span class="s1"> --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="result"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="resultText"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="highScore"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;select id="difficultyResult"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;option value="easy"&gt;</span><span class="s2">かんたん</span><span class="s1">&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1">&lt;option value="normal"&gt;</span><span class="s2">ふつう</span><span class="s1">&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1">&lt;option value="hard"&gt;</span><span class="s2">むずかしい</span><span class="s1">&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/select&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;button onclick="restartGame()"&gt;</span><span class="s2">もう一度あそぶ</span><span class="s1">&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;script&gt;</span></p>
+<p class="p1"><span class="s1">const baseCards=["AS","AH","KD","KC","QS"];</span></p>
+<p class="p4"><span class="s5">const getImg=c=&gt;`<a href="https://deckofcardsapi.com/static/img/$%7Bc%7D.png"><span class="s6">https://deckofcardsapi.com/static/img/${c}.png`</span></a>;</span></p>
+<p class="p4"><span class="s5">const backImg="<a href="https://deckofcardsapi.com/static/img/back.png"><span class="s6">https://deckofcardsapi.com/static/img/back.png</span></a>";</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let board=document.getElementById("board");</span></p>
+<p class="p1"><span class="s1">let first=null, second=null, lock=false;</span></p>
+<p class="p1"><span class="s1">let turn=0, scores=[0,0], memory={}, deck=[];</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* </span><span class="s2">スタート</span><span class="s1"> */</span></p>
+<p class="p1"><span class="s1">function startGame(){</span></p>
+<p class="p1"><span class="s1">document.getElementById("startScreen").style.display="none";</span></p>
+<p class="p1"><span class="s1">document.getElementById("game").style.display="block";</span></p>
+<p class="p1"><span class="s1">initGame();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* </span><span class="s2">リスタート</span><span class="s1"> */</span></p>
+<p class="p1"><span class="s1">function restartGame(){</span></p>
+<p class="p1"><span class="s1">let diff=document.getElementById("difficultyResult").value;</span></p>
+<p class="p1"><span class="s1">document.getElementById("difficulty").value=diff;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("result").style.display="none";</span></p>
+<p class="p1"><span class="s1">initGame();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* </span><span class="s2">初期化</span><span class="s1"> */</span></p>
+<p class="p1"><span class="s1">function initGame(){</span></p>
+<p class="p1"><span class="s1">first=null; second=null; lock=false;</span></p>
+<p class="p1"><span class="s1">turn=0;</span></p>
+<p class="p1"><span class="s1">scores=[0,0];</span></p>
+<p class="p1"><span class="s1">memory={};</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">board.innerHTML="";</span></p>
+<p class="p1"><span class="s1">deck=[...baseCards,...baseCards].sort(()=&gt;Math.random()-0.5);</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">deck.forEach(c=&gt;{</span></p>
+<p class="p1"><span class="s1">let card=document.createElement("div");</span></p>
+<p class="p1"><span class="s1">card.className="card";</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let inner=document.createElement("div");</span></p>
+<p class="p1"><span class="s1">inner.className="inner";</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let front=document.createElement("div");</span></p>
+<p class="p1"><span class="s1">front.className="face front";</span></p>
+<p class="p1"><span class="s1">front.innerHTML=`&lt;img src="${getImg(c)}"&gt;`;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let back=document.createElement("div");</span></p>
+<p class="p1"><span class="s1">back.className="face back";</span></p>
+<p class="p1"><span class="s1">back.innerHTML=`&lt;img src="${backImg}"&gt;`;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">inner.append(front,back);</span></p>
+<p class="p1"><span class="s1">card.appendChild(inner);</span></p>
+<p class="p1"><span class="s1">card.dataset.value=c;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">card.onclick=()=&gt;onCardClick(card);</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">board.appendChild(card);</span></p>
+<p class="p1"><span class="s1">});</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">update();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">function onCardClick(card){</span></p>
+<p class="p1"><span class="s1">if(turn!==0||lock||card.classList.contains("taken")||card===first) return;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">flip(card);</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">if(!first){</span></p>
+<p class="p1"><span class="s1">first=card;</span></p>
+<p class="p1"><span class="s1">return;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">second=card;</span></p>
+<p class="p1"><span class="s1">judge();</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">function update(){</span></p>
+<p class="p1"><span class="s1">document.getElementById("turn").textContent =</span></p>
+<p class="p1"><span class="s1">turn===0?"</span><span class="s2">あなたのターン</span><span class="s1">":"CPU</span><span class="s2">のターン</span><span class="s1">";</span></p>
+<p class="p1"><span class="s1">document.getElementById("score").textContent =</span></p>
+<p class="p1"><span class="s1">`</span><span class="s2">あなた</span><span class="s1">:${scores[0]} / CPU:${scores[1]}`;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">function flip(card){</span></p>
+<p class="p1"><span class="s1">card.classList.add("flip");</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">memory[card.dataset.value]=memory[card.dataset.value]||[];</span></p>
+<p class="p1"><span class="s1">if(!memory[card.dataset.value].includes(card)){</span></p>
+<p class="p1"><span class="s1">memory[card.dataset.value].push(card);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">function unflip(card){</span></p>
+<p class="p1"><span class="s1">card.classList.remove("flip");</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">function judge(){</span></p>
+<p class="p1"><span class="s1">lock=true;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">setTimeout(()=&gt;{</span></p>
+<p class="p1"><span class="s1">if(first.dataset.value===second.dataset.value){</span></p>
+<p class="p1"><span class="s1">first.classList.add("taken");</span></p>
+<p class="p1"><span class="s1">second.classList.add("taken");</span></p>
+<p class="p1"><span class="s1">scores[turn]++;</span></p>
+<p class="p1"><span class="s1">reset(true);</span></p>
+<p class="p1"><span class="s1">}else{</span></p>
+<p class="p1"><span class="s1">unflip(first);</span></p>
+<p class="p1"><span class="s1">unflip(second);</span></p>
+<p class="p1"><span class="s1">reset(false);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">},500);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">function reset(success){</span></p>
+<p class="p1"><span class="s1">first=null; second=null; lock=false;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">if(!success) turn=1-turn;</span></p>
+<p class="p1"><span class="s1">update();</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">if(checkEnd()) return;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">if(turn===1){</span></p>
+<p class="p1"><span class="s1">setTimeout(cpu,600);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* CPU */</span></p>
+<p class="p1"><span class="s1">function cpu(){</span></p>
+<p class="p1"><span class="s1">let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];</span></p>
+<p class="p1"><span class="s1">let c1=choices[Math.floor(Math.random()*choices.length)];</span></p>
+<p class="p1"><span class="s1">let c2;</span></p>
+<p class="p1"><span class="s1">do{</span></p>
+<p class="p1"><span class="s1">c2=choices[Math.floor(Math.random()*choices.length)];</span></p>
+<p class="p1"><span class="s1">}while(c1===c2);</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">flip(c1);</span></p>
+<p class="p1"><span class="s1">first=c1;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">setTimeout(()=&gt;{</span></p>
+<p class="p1"><span class="s1">flip(c2);</span></p>
+<p class="p1"><span class="s1">second=c2;</span></p>
+<p class="p1"><span class="s1">judge();</span></p>
+<p class="p1"><span class="s1">},400);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* </span><span class="s2">終了</span><span class="s1"> */</span></p>
+<p class="p1"><span class="s1">function checkEnd(){</span></p>
+<p class="p1"><span class="s1">if(document.querySelectorAll(".taken").length===10){</span></p>
+<p class="p1"><span class="s1">setTimeout(showResult,300);</span></p>
+<p class="p1"><span class="s1">return true;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">return false;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">/* </span><span class="s2">結果</span><span class="s1"> */</span></p>
+<p class="p1"><span class="s1">function showResult(){</span></p>
+<p class="p1"><span class="s1">let diff=document.getElementById("difficulty").value;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let text="";</span></p>
+<p class="p1"><span class="s1">if(scores[0]&gt;scores[1]) text="</span><span class="s2">あなたの勝ち！</span><span class="s1">";</span></p>
+<p class="p1"><span class="s1">else if(scores[1]&gt;scores[0]) text="CPU</span><span class="s2">の勝ち！</span><span class="s1">";</span></p>
+<p class="p1"><span class="s1">else text="</span><span class="s2">引き分け！</span><span class="s1">";</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("resultText").textContent=text;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let key="best_"+diff;</span></p>
+<p class="p1"><span class="s1">let best=parseInt(localStorage.getItem(key)||"0");</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">if(scores[0]&gt;best){</span></p>
+<p class="p1"><span class="s1">best=scores[0];</span></p>
+<p class="p1"><span class="s1">localStorage.setItem(key,best);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("highScore").textContent =</span></p>
+<p class="p1"><span class="s1">`${diff} </span><span class="s2">ハイスコア</span><span class="s1">: ${best}`;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("difficultyResult").value=diff;</span></p>
+<p class="p1"><span class="s1">document.getElementById("result").style.display="flex";</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">let amount = scores[0]&gt;scores[1] ? 120 : 50;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">for(let i=0;i&lt;amount;i++){</span></p>
+<p class="p1"><span class="s1">let c=document.createElement("div");</span></p>
+<p class="p1"><span class="s1">c.className="confetti";</span></p>
+<p class="p1"><span class="s1">c.style.left=Math.random()*100+"%";</span></p>
+<p class="p1"><span class="s1">c.style.background=`hsl(${Math.random()*360},100%,50%)`;</span></p>
+<p class="p1"><span class="s1">c.style.animationDuration=(1+Math.random())+"s";</span></p>
+<p class="p1"><span class="s1">document.body.appendChild(c);</span></p>
+<p class="p1"><span class="s1">setTimeout(()=&gt;c.remove(),2000);</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
+<p class="p2"><span class="s3"></span><br></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p5"><span class="s3">&lt;/html&gt;</span></p>
+</body>
+</html>

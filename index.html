@@ -9,7 +9,7 @@
 <style>
 body { margin:0; font-family:sans-serif; }
 
-/* スタート */
+/* ===== スタート画面 ===== */
 #startScreen{
 position:fixed;width:100%;height:100%;
 background:#fff;color:#000;
@@ -17,18 +17,53 @@ display:flex;flex-direction:column;
 justify-content:center;align-items:center;
 }
 
-.title{ font-size:60px; margin-bottom:30px; }
-
-#startBtn{
-padding:15px 50px;
-font-size:20px;
-background:#000;color:#fff;
-border:none;
+.title{
+font-size:60px;
+letter-spacing:8px;
+margin-bottom:30px;
 }
 
-select{ padding:10px; margin-bottom:20px; }
+/* ===== UI強化 ===== */
+select{
+padding:14px 24px;
+margin-bottom:25px;
+font-size:22px;
+border:2px solid #000;
+}
 
-/* ゲーム */
+/* ボタン共通 */
+button{
+padding:18px 60px;
+font-size:24px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+transition:0.2s;
+}
+
+/* スタートボタン */
+#startBtn{
+background:#000;color:#fff;
+letter-spacing:4px;
+}
+
+/* 結果ボタン */
+#result button{
+background:#fff;
+color:#000;
+margin-top:20px;
+}
+
+/* ===== ボタンアニメーション ===== */
+button:hover{
+transform:scale(1.05);
+}
+
+button:active{
+transform:scale(0.9);
+}
+
+/* ===== ゲーム ===== */
 #game{
 display:none;
 background:#0f172a;
@@ -53,7 +88,7 @@ transform-style:preserve-3d;
 position:relative;
 }
 
-.card.flip .inner{ transform:rotateY(180deg); }
+.card.flip .inner{ transform:rotateY(180deg) scale(1.05); }
 
 .face{
 position:absolute;
@@ -69,7 +104,7 @@ border-radius:10px;
 .front{ transform:rotateY(180deg); }
 .taken{ opacity:0.4; }
 
-/* 結果 */
+/* ===== 結果画面 ===== */
 #result{
 position:fixed;
 top:0;left:0;
@@ -82,7 +117,11 @@ background:rgba(0,0,0,0.9);
 color:white;
 }
 
-#resultText{ font-size:40px; color:gold; }
+#resultText{
+font-size:42px;
+color:gold;
+margin-bottom:10px;
+}
 
 /* 紙吹雪 */
 .confetti{
@@ -146,7 +185,7 @@ const backImg="https://deckofcardsapi.com/static/img/back.png";
 let first=null, second=null, lock=false;
 let turn=0;
 let scores=[0,0];
-let memory={}; // CPU記憶
+let memory={};
 let difficulty="normal";
 
 function startGame(){
@@ -219,7 +258,6 @@ judge();
 function flip(card){
 card.classList.add("flip");
 
-// 記憶
 let v=card.dataset.value;
 memory[v]=memory[v]||[];
 if(!memory[v].includes(card)){
@@ -257,28 +295,24 @@ setTimeout(cpu,700);
 }
 }
 
-/* CPUロジック */
 function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
 let c1,c2;
 
-// 難易度ごとのAI
+// 難易度別AI
 if(difficulty==="hard"){
-// 完全記憶
 let pair = Object.values(memory).find(v=>v.length===2 && !v[0].classList.contains("taken"));
 if(pair){ [c1,c2]=pair; }
 }
 
 if(!c1 && difficulty==="normal"){
-// 50%で記憶使う
 if(Math.random()<0.5){
 let pair = Object.values(memory).find(v=>v.length===2 && !v[0].classList.contains("taken"));
 if(pair){ [c1,c2]=pair; }
 }
 }
 
-// fallback（ランダム）
 if(!c1){
 c1=choices[Math.floor(Math.random()*choices.length)];
 do{

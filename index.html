@@ -1,9 +1,106 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="ja">
 <head>
-<title>test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神経衰弱</title>
+
+<style>
+body { margin:0; font-family:sans-serif; text-align:center; background:#0f172a; color:white; }
+
+.board{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+padding:20px;
+max-width:500px;
+margin:auto;
+}
+
+.card{
+aspect-ratio:3/4;
+background:#1e293b;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+cursor:pointer;
+border-radius:10px;
+}
+
+.card.open{ background:#38bdf8; }
+.card.matched{ background:#22c55e; cursor:default; }
+</style>
+
 </head>
+
 <body>
-<h1>OK</h1>
+
+<h1>神経衰弱</h1>
+<p id="status">あなたのターン</p>
+<div class="board" id="board"></div>
+
+<script>
+const symbols = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍑"];
+let cards = [...symbols, ...symbols];
+
+let board = document.getElementById("board");
+let first = null;
+let second = null;
+let lock = false;
+
+cards.sort(() => Math.random() - 0.5);
+
+cards.forEach(symbol => {
+let div = document.createElement("div");
+div.className = "card";
+div.dataset.value = symbol;
+div.textContent = "";
+
+div.onclick = () => {
+if(lock || div.classList.contains("matched") || div === first) return;
+
+div.textContent = symbol;
+div.classList.add("open");
+
+if(!first){
+first = div;
+return;
+}
+
+second = div;
+lock = true;
+
+setTimeout(() => {
+if(first.dataset.value === second.dataset.value){
+first.classList.add("matched");
+second.classList.add("matched");
+}else{
+first.textContent = "";
+second.textContent = "";
+first.classList.remove("open");
+second.classList.remove("open");
+}
+
+first = null;
+second = null;
+lock = false;
+
+checkEnd();
+}, 600);
+};
+
+board.appendChild(div);
+});
+
+function checkEnd(){
+let matched = document.querySelectorAll(".matched").length;
+if(matched === cards.length){
+document.getElementById("status").textContent = "クリア！🎉";
+}
+}
+</script>
+
 </body>
 </html>

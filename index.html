@@ -7,98 +7,265 @@
 <title>神経衰弱</title>
 
 <style>
-body { margin:0; font-family:sans-serif; text-align:center; background:#0f172a; color:white; }
+body { margin:0; font-family:sans-serif; }
+
+/* ===== スタート画面 ===== */
+#startScreen{
+position:fixed;width:100%;height:100%;
+background:#fff;color:#000;
+display:flex;flex-direction:column;
+justify-content:center;align-items:center;
+}
+
+.title{
+font-size:60px;
+letter-spacing:8px;
+margin-bottom:30px;
+}
+
+#startBtn{
+padding:15px 50px;
+font-size:20px;
+background:#000;color:#fff;
+border:none;
+letter-spacing:3px;
+}
+
+select{
+padding:10px;
+margin-bottom:20px;
+}
+
+/* ===== ゲーム ===== */
+#game{
+display:none;
+background:#0f172a;
+color:white;
+min-height:100vh;
+text-align:center;
+}
 
 .board{
 display:grid;
-grid-template-columns:repeat(4,1fr);
+grid-template-columns:repeat(5,1fr);
 gap:10px;
-padding:20px;
-max-width:500px;
-margin:auto;
+padding:10px;
 }
 
-.card{
-aspect-ratio:3/4;
-background:#1e293b;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:24px;
-cursor:pointer;
+.card{ aspect-ratio:3/4; perspective:800px; }
+
+.inner{
+width:100%;height:100%;
+transition:0.4s;
+transform-style:preserve-3d;
+position:relative;
+}
+
+.card.flip .inner{ transform:rotateY(180deg); }
+
+.face{
+position:absolute;
+width:100%;height:100%;
+backface-visibility:hidden;
+}
+
+.face img{
+width:100%;height:100%;
 border-radius:10px;
 }
 
-.card.open{ background:#38bdf8; }
-.card.matched{ background:#22c55e; cursor:default; }
+.front{ transform:rotateY(180deg); }
+.taken{ opacity:0.4; }
+
+/* ===== 結果画面 ===== */
+#result{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:rgba(0,0,0,0.9);
+color:white;
+}
+
+#resultText{
+font-size:40px;
+margin-bottom:10px;
+color:gold;
+}
+
+/* 紙吹雪 */
+.confetti{
+position:fixed;
+width:8px;height:12px;
+animation:fall linear forwards;
+}
+
+@keyframes fall{
+to{ transform:translateY(100vh) rotate(720deg); }
+}
 </style>
 
 </head>
 
 <body>
 
-<h1>神経衰弱</h1>
-<p id="status">あなたのターン</p>
+<!-- スタート -->
+
+<div id="startScreen">
+<div class="title">神経衰弱</div>
+
+<select id="difficulty">
+<option value="easy">やさしい</option>
+<option value="normal" selected>ふつう</option>
+<option value="hard">むずかしい</option>
+</select>
+
+<button id="startBtn" onclick="startGame()">あそぶ</button>
+
+</div>
+
+<!-- ゲーム -->
+
+<div id="game">
+<h2>プレイ中</h2>
 <div class="board" id="board"></div>
+</div>
+
+<!-- 結果 -->
+
+<div id="result">
+<div id="resultText"></div>
+
+<select id="difficultyResult">
+<option value="easy">やさしい</option>
+<option value="normal">ふつう</option>
+<option value="hard">むずかしい</option>
+</select>
+
+<button onclick="restartGame()">もう一度あそぶ</button>
+
+</div>
 
 <script>
-const symbols = ["🍎","🍌","🍇","🍒","🍉","🍍","🥝","🍑"];
-let cards = [...symbols, ...symbols];
+const baseCards=["AS","AH","KD","KC","QS"]; // 10枚
+const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
+const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-let board = document.getElementById("board");
-let first = null;
-let second = null;
-let lock = false;
+let first=null, second=null, lock=false;
+let matched=0;
 
-cards.sort(() => Math.random() - 0.5);
+/* スタート */
+function startGame(){
+document.getElementById("startScreen").style.display="none";
+document.getElementById("game").style.display="block";
+init();
+}
 
-cards.forEach(symbol => {
-let div = document.createElement("div");
-div.className = "card";
-div.dataset.value = symbol;
-div.textContent = "";
+/* 初期化 */
+function init(){
+let board=document.getElementById("board");
+board.innerHTML="";
+matched=0;
+first=null;
+second=null;
+lock=false;
 
-div.onclick = () => {
-if(lock || div.classList.contains("matched") || div === first) return;
+let deck=[...baseCards,...baseCards].sort(()=>Math.random()-0.5);
 
-div.textContent = symbol;
-div.classList.add("open");
+deck.forEach(c=>{
+let card=document.createElement("div");
+card.className="card";
+
+let inner=document.createElement("div");
+inner.className="inner";
+
+let front=document.createElement("div");
+front.className="face front";
+front.innerHTML=`<img src="${getImg(c)}">`;
+
+let back=document.createElement("div");
+back.className="face back";
+back.innerHTML=`<img src="${backImg}">`;
+
+inner.append(front,back);
+card.appendChild(inner);
+
+card.onclick=()=>click(card,c);
+
+board.appendChild(card);
+});
+}
+
+/* クリック */
+function click(card,value){
+if(lock || card.classList.contains("flip")) return;
+
+card.classList.add("flip");
 
 if(!first){
-first = div;
+first={card,value};
 return;
 }
 
-second = div;
-lock = true;
+second={card,value};
+lock=true;
 
-setTimeout(() => {
-if(first.dataset.value === second.dataset.value){
-first.classList.add("matched");
-second.classList.add("matched");
+setTimeout(()=>{
+if(first.value===second.value){
+first.card.classList.add("taken");
+second.card.classList.add("taken");
+matched+=2;
+
+if(matched===10) endGame();
+
 }else{
-first.textContent = "";
-second.textContent = "";
-first.classList.remove("open");
-second.classList.remove("open");
+first.card.classList.remove("flip");
+second.card.classList.remove("flip");
 }
 
-first = null;
-second = null;
-lock = false;
-
-checkEnd();
-}, 600);
-};
-
-board.appendChild(div);
-});
-
-function checkEnd(){
-let matched = document.querySelectorAll(".matched").length;
-if(matched === cards.length){
-document.getElementById("status").textContent = "クリア！🎉";
+first=null;
+second=null;
+lock=false;
+},600);
 }
+
+/* 終了 */
+function endGame(){
+document.getElementById("resultText").textContent="クリア！🎉";
+
+// 難易度同期
+let diff=document.getElementById("difficulty").value;
+document.getElementById("difficultyResult").value=diff;
+
+document.getElementById("result").style.display="flex";
+
+/* 紙吹雪 */
+for(let i=0;i<120;i++){
+let c=document.createElement("div");
+c.className="confetti";
+c.style.left=Math.random()*100+"%";
+c.style.background=`hsl(${Math.random()*360},100%,50%)`;
+c.style.animationDuration=(1+Math.random())+"s";
+document.body.appendChild(c);
+setTimeout(()=>c.remove(),2000);
+}
+}
+
+/* リスタート */
+function restartGame(){
+let diff=document.getElementById("difficultyResult").value;
+
+// 難易度反映
+document.getElementById("difficulty").value=diff;
+
+// 結果閉じる
+document.getElementById("result").style.display="none";
+
+// 再初期化
+init();
 }
 </script>
 

@@ -98,31 +98,27 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* ランクとスート */
+/* フルデッキ生成 */
 const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 const suits=["S","H","D","C"];
+
+function createDeck(){
+let deck=[];
+ranks.forEach(r=>{
+suits.forEach(s=>{
+deck.push(r+s);
+});
+});
+return deck;
+}
 
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-/* ★完全バランスカード生成 */
-function getBalancedCards(count){
-let result=[];
-let shuffledRanks=[...ranks].sort(()=>Math.random()-0.5);
-
-let i=0;
-while(result.length<count){
-let r=shuffledRanks[i % shuffledRanks.length];
-let s=suits[Math.floor(Math.random()*suits.length)];
-let card=r+s;
-
-if(!result.includes(card)){
-result.push(card);
-}
-i++;
-}
-
-return result;
+/* ★重複なしで取得 */
+function getCards(count){
+let deck=createDeck().sort(()=>Math.random()-0.5);
+return deck.slice(0,count);
 }
 
 let stage=1;
@@ -146,7 +142,10 @@ init();
 
 function init(){
 let pair=pairCounts[stage-1];
-let cards=getBalancedCards(pair);
+
+/* ★ここ完全修正 */
+let cards=getCards(pair);
+
 let deck=[...cards,...cards].sort(()=>Math.random()-0.5);
 
 let board=document.getElementById("board");

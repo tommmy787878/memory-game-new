@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神経衰弱 完全版</title>
+<title>神経衰弱 完全安定版</title>
 
 <style>
 body { margin:0; font-family:sans-serif; }
@@ -98,7 +98,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* フルデッキ生成 */
+/* デッキ */
 const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 const suits=["S","H","D","C"];
 
@@ -115,17 +115,16 @@ return deck;
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-/* ★重複なしで取得 */
 function getCards(count){
-let deck=createDeck().sort(()=>Math.random()-0.5);
-return deck.slice(0,count);
+return createDeck().sort(()=>Math.random()-0.5).slice(0,count);
 }
 
 let stage=1;
 let difficulty="normal";
 let pairCounts=[5,8,12];
 
-let first=null, second=null, lock=false;
+let first=null, second=null;
+let lock=false;
 let turn=0;
 let scores=[0,0];
 let memory={};
@@ -142,10 +141,7 @@ init();
 
 function init(){
 let pair=pairCounts[stage-1];
-
-/* ★ここ完全修正 */
 let cards=getCards(pair);
-
 let deck=[...cards,...cards].sort(()=>Math.random()-0.5);
 
 let board=document.getElementById("board");
@@ -173,6 +169,8 @@ back.innerHTML=`<img src="${backImg}">`;
 
 inner.append(front,back);
 card.appendChild(inner);
+
+/* ★クリック修正 */
 card.onclick=()=>onClick(card);
 
 board.appendChild(card);
@@ -190,11 +188,30 @@ document.getElementById("score").textContent =
 }
 
 function onClick(card){
-if(turn!==0 || lock || card.classList.contains("flip") || card.classList.contains("taken")) return;
 
+/* ★ガード強化 */
+if(lock) return;
+if(turn!==0) return;
+if(card.classList.contains("flip")) return;
+if(card.classList.contains("taken")) return;
+
+/* 1枚目 */
+if(!first){
+first=card;
 flip(card);
-if(!first){ first=card; return; }
+return;
+}
+
+/* 同じカード防止 */
+if(card===first) return;
+
+/* 2枚目 */
 second=card;
+flip(card);
+
+/* ★ここで完全ロック */
+lock=true;
+
 judge();
 }
 
@@ -206,7 +223,6 @@ if(!memory[v].includes(card)) memory[v].push(card);
 }
 
 function judge(){
-lock=true;
 setTimeout(()=>{
 if(first.dataset.value===second.dataset.value){
 first.classList.add("taken");
@@ -222,54 +238,32 @@ reset(false);
 }
 
 function reset(success){
-first=null; second=null; lock=false;
+first=null; second=null;
+lock=false;
+
 if(!success) turn=1-turn;
+
 update();
 
 if(checkEnd()) return;
-if(turn===1) setTimeout(cpu,600);
+if(turn===1) setTimeout(cpu,700);
 }
 
 function cpu(){
+lock=true;
+
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
-let useMemory=false;
-if(difficulty==="normal") useMemory=Math.random()<0.5;
-if(difficulty==="hard") useMemory=true;
-if(difficulty==="oni") useMemory=Math.random()<0.8;
-
-let knownPair=null;
-
-if(useMemory){
-for(let key in memory){
-let cards=memory[key].filter(c=>!c.classList.contains("taken"));
-if(cards.length>=2){
-knownPair=cards;
-break;
-}
-}
-}
-
-let c1, c2;
-
-if(knownPair){
-c1=knownPair[0];
-c2=knownPair[1];
-}else{
-c1=choices[Math.floor(Math.random()*choices.length)];
+let c1=choices[Math.floor(Math.random()*choices.length)];
 let rest=choices.filter(c=>c!==c1);
+let c2=rest[Math.floor(Math.random()*rest.length)];
 
-if(difficulty==="oni" && Math.random()<0.7){
-let match=rest.find(c=>c.dataset.value===c1.dataset.value);
-c2=match || rest[Math.floor(Math.random()*rest.length)];
-}else{
-c2=rest[Math.floor(Math.random()*rest.length)];
-}
-}
+flip(c1);
 
-flip(c1); first=c1;
 setTimeout(()=>{
-flip(c2); second=c2;
+flip(c2);
+first=c1;
+second=c2;
 judge();
 },400);
 }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神経衰弱 完全安定版</title>
+<title>神経衰弱 完全版</title>
 
 <style>
 body { margin:0; font-family:sans-serif; }
@@ -19,7 +19,8 @@ background:#fff;
 #startBtn{
 font-size:32px;
 padding:20px 80px;
-border:none;border-radius:15px;
+border:none;
+border-radius:15px;
 background:#000;color:#fff;
 cursor:pointer;
 transition:0.2s;
@@ -98,33 +99,44 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* デッキ */
-const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-const suits=["S","H","D","C"];
-
-function createDeck(){
-let deck=[];
-ranks.forEach(r=>{
-suits.forEach(s=>{
-deck.push(r+s);
-});
-});
-return deck;
-}
+/* カード（ランクごとに整理） */
+const cardGroups = {
+A:["AS","AH","AC","AD"],
+K:["KS","KH","KC","KD"],
+Q:["QS","QH","QC","QD"]
+};
 
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-function getCards(count){
-return createDeck().sort(()=>Math.random()-0.5).slice(0,count);
+/* ★バランス選択 */
+function getBalancedCards(count){
+let result=[];
+let keys=Object.keys(cardGroups);
+
+/* 均等配分 */
+while(result.length < count){
+for(let k of keys){
+if(result.length >= count) break;
+
+let group=cardGroups[k];
+let card=group[Math.floor(Math.random()*group.length)];
+
+if(!result.includes(card)){
+result.push(card);
+}
+}
+}
+
+/* 最後シャッフル */
+return result.sort(()=>Math.random()-0.5);
 }
 
 let stage=1;
 let difficulty="normal";
 let pairCounts=[5,8,12];
 
-let first=null, second=null;
-let lock=false;
+let first=null, second=null, lock=false;
 let turn=0;
 let scores=[0,0];
 let memory={};
@@ -141,11 +153,15 @@ init();
 
 function init(){
 let pair=pairCounts[stage-1];
-let cards=getCards(pair);
+
+/* ★ここが完全修正 */
+let cards=getBalancedCards(pair);
+
 let deck=[...cards,...cards].sort(()=>Math.random()-0.5);
 
 let board=document.getElementById("board");
 board.innerHTML="";
+
 board.style.gridTemplateColumns=`repeat(${Math.ceil(Math.sqrt(pair*2))},1fr)`;
 
 first=null; second=null; lock=false;
@@ -169,8 +185,6 @@ back.innerHTML=`<img src="${backImg}">`;
 
 inner.append(front,back);
 card.appendChild(inner);
-
-/* ★クリック修正 */
 card.onclick=()=>onClick(card);
 
 board.appendChild(card);
@@ -188,30 +202,11 @@ document.getElementById("score").textContent =
 }
 
 function onClick(card){
+if(turn!==0 || lock || card.classList.contains("flip") || card.classList.contains("taken")) return;
 
-/* ★ガード強化 */
-if(lock) return;
-if(turn!==0) return;
-if(card.classList.contains("flip")) return;
-if(card.classList.contains("taken")) return;
-
-/* 1枚目 */
-if(!first){
-first=card;
 flip(card);
-return;
-}
-
-/* 同じカード防止 */
-if(card===first) return;
-
-/* 2枚目 */
+if(!first){ first=card; return; }
 second=card;
-flip(card);
-
-/* ★ここで完全ロック */
-lock=true;
-
 judge();
 }
 
@@ -223,6 +218,7 @@ if(!memory[v].includes(card)) memory[v].push(card);
 }
 
 function judge(){
+lock=true;
 setTimeout(()=>{
 if(first.dataset.value===second.dataset.value){
 first.classList.add("taken");
@@ -238,32 +234,54 @@ reset(false);
 }
 
 function reset(success){
-first=null; second=null;
-lock=false;
-
+first=null; second=null; lock=false;
 if(!success) turn=1-turn;
-
 update();
 
 if(checkEnd()) return;
-if(turn===1) setTimeout(cpu,700);
+if(turn===1) setTimeout(cpu,600);
 }
 
 function cpu(){
-lock=true;
-
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
-let c1=choices[Math.floor(Math.random()*choices.length)];
+let useMemory=false;
+if(difficulty==="normal") useMemory=Math.random()<0.5;
+if(difficulty==="hard") useMemory=true;
+if(difficulty==="oni") useMemory=Math.random()<0.8;
+
+let knownPair=null;
+
+if(useMemory){
+for(let key in memory){
+let cards=memory[key].filter(c=>!c.classList.contains("taken"));
+if(cards.length>=2){
+knownPair=cards;
+break;
+}
+}
+}
+
+let c1, c2;
+
+if(knownPair){
+c1=knownPair[0];
+c2=knownPair[1];
+}else{
+c1=choices[Math.floor(Math.random()*choices.length)];
 let rest=choices.filter(c=>c!==c1);
-let c2=rest[Math.floor(Math.random()*rest.length)];
 
-flip(c1);
+if(difficulty==="oni" && Math.random()<0.7){
+let match=rest.find(c=>c.dataset.value===c1.dataset.value);
+c2=match || rest[Math.floor(Math.random()*rest.length)];
+}else{
+c2=rest[Math.floor(Math.random()*rest.length)];
+}
+}
 
+flip(c1); first=c1;
 setTimeout(()=>{
-flip(c2);
-first=c1;
-second=c2;
+flip(c2); second=c2;
 judge();
 },400);
 }

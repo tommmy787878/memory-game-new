@@ -2,25 +2,67 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>神経衰弱（強化版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神経衰弱</title>
 
 <style>
-body{margin:0;font-family:sans-serif;}
-#startScreen{position:fixed;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;}
-.title{font-size:50px;margin-bottom:20px;}
+body { margin:0; font-family:sans-serif; }
+#startScreen{
+position:fixed;width:100%;height:100%;
+background:#fff;display:flex;
+flex-direction:column;justify-content:center;align-items:center;
+}
+.title{ font-size:60px; letter-spacing:8px; margin-bottom:20px; }
 
-button{padding:12px 30px;font-size:18px;margin-top:10px;}
+select{ padding:14px 24px; margin-bottom:10px; font-size:20px; }
 
-#game{display:none;background:#0f172a;color:#fff;min-height:100vh;text-align:center;}
+button{
+padding:16px 50px;font-size:22px;
+border:none;border-radius:10px;
+cursor:pointer;transition:0.2s;
+}
+button:hover{ transform:scale(1.05); }
+button:active{ transform:scale(0.9); }
 
-.board{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:10px;}
-.card{aspect-ratio:3/4;perspective:800px;}
-.inner{width:100%;height:100%;transition:.4s;transform-style:preserve-3d;position:relative;}
-.card.flip .inner{transform:rotateY(180deg);}
-.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;}
-.front{transform:rotateY(180deg);}
-.face img{width:100%;height:100%;border-radius:10px;}
-.taken{opacity:.4;}
+#startBtn{ background:#000;color:#fff; }
+
+#game{
+display:none;background:#0f172a;color:white;
+min-height:100vh;text-align:center;
+}
+
+.board{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:10px;padding:10px;
+}
+
+.card{ aspect-ratio:3/4; perspective:800px; }
+.inner{
+width:100%;height:100%;
+transition:0.4s;transform-style:preserve-3d;
+position:relative;
+}
+.card.flip .inner{ transform:rotateY(180deg) scale(1.05); }
+
+.face{
+position:absolute;width:100%;height:100%;
+backface-visibility:hidden;
+}
+.face img{ width:100%;height:100%;border-radius:10px; }
+
+.front{ transform:rotateY(180deg); }
+.taken{ opacity:0.4; }
+
+/* 結果 */
+#result{
+position:fixed;top:0;left:0;
+width:100%;height:100%;
+display:none;justify-content:center;align-items:center;
+flex-direction:column;background:rgba(0,0,0,0.9);color:white;
+}
+
+#resultText{ font-size:42px;color:gold;margin-bottom:10px; }
 </style>
 </head>
 
@@ -36,48 +78,56 @@ button{padding:12px 30px;font-size:18px;margin-top:10px;}
 <option value="oni">鬼モード👹</option>
 </select>
 
-<button onclick="startGame()">スタート</button>
+<button id="startBtn" onclick="startGame()">あそぶ</button>
 </div>
 
 <div id="game">
-<h2 id="turnText"></h2>
-<p id="score"></p>
+<h2 id="turnText">あなたのターン</h2>
+<p id="score">あなた:0 / CPU:0</p>
+<p id="timer">時間: 0秒</p>
 <div class="board" id="board"></div>
 </div>
 
+<div id="result">
+<div id="resultText"></div>
+<button onclick="restartGame()">もう一度</button>
+<button onclick="goHome()">ホームに戻る</button>
+</div>
+
 <script>
-const baseCards=["AS","AH","AD","AC","KS"];
+const baseCards=["AS","AH","KD","KC","QS"];
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-let first=null,second=null,lock=false;
+let first=null, second=null, lock=false;
 let turn=0;
 let scores=[0,0];
 let memory={};
 let difficulty="normal";
 
-/* 難易度設定 */
-function cpuLevel(){
-switch(difficulty){
-case "easy": return {memory:0.2, accuracy:0.3};
-case "normal": return {memory:0.5, accuracy:0.6};
-case "hard": return {memory:0.9, accuracy:0.9};
-case "oni": return {memory:1, accuracy:1};
-}
-}
+let startTime=0;
+let timerInterval=null;
 
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
+
 document.getElementById("startScreen").style.display="none";
 document.getElementById("game").style.display="block";
+
+startTime=Date.now();
+timerInterval=setInterval(()=>{
+let t=Math.floor((Date.now()-startTime)/1000);
+document.getElementById("timer").textContent=`時間: ${t}秒`;
+},1000);
+
 init();
 }
 
 function init(){
 let board=document.getElementById("board");
 board.innerHTML="";
-first=second=null;lock=false;
-turn=0;scores=[0,0];memory={};
+first=null; second=null; lock=false;
+turn=0; scores=[0,0]; memory={};
 
 let deck=[...baseCards,...baseCards].sort(()=>Math.random()-0.5);
 
@@ -94,12 +144,11 @@ front.className="face front";
 front.innerHTML=`<img src="${getImg(c)}">`;
 
 let back=document.createElement("div");
-back.className="face";
+back.className="face back";
 back.innerHTML=`<img src="${backImg}">`;
 
 inner.append(front,back);
 card.appendChild(inner);
-
 card.onclick=()=>onClick(card);
 
 board.appendChild(card);
@@ -109,14 +158,20 @@ update();
 }
 
 function update(){
-document.getElementById("turnText").textContent=turn===0?"あなた":"CPU";
-document.getElementById("score").textContent=`あなた:${scores[0]} / CPU:${scores[1]}`;
+document.getElementById("turnText").textContent =
+turn===0?"あなたのターン":"CPUのターン";
+
+document.getElementById("score").textContent =
+`あなた:${scores[0]} / CPU:${scores[1]}`;
 }
 
 function onClick(card){
-if(turn!==0||lock||card.classList.contains("flip")||card.classList.contains("taken"))return;
+if(turn!==0 || lock || card.classList.contains("flip") || card.classList.contains("taken")) return;
+
 flip(card);
-if(!first){first=card;return;}
+
+if(!first){ first=card; return; }
+
 second=card;
 judge();
 }
@@ -125,11 +180,12 @@ function flip(card){
 card.classList.add("flip");
 let v=card.dataset.value;
 memory[v]=memory[v]||[];
-if(!memory[v].includes(card))memory[v].push(card);
+if(!memory[v].includes(card)) memory[v].push(card);
 }
 
 function judge(){
 lock=true;
+
 setTimeout(()=>{
 if(first.dataset.value===second.dataset.value){
 first.classList.add("taken");
@@ -145,63 +201,96 @@ reset(false);
 }
 
 function reset(success){
-first=second=null;lock=false;
-if(!success)turn=1-turn;
+first=null; second=null; lock=false;
+if(!success) turn=1-turn;
 update();
-if(checkEnd())return;
-if(turn===1)setTimeout(cpu,600);
+
+if(checkEnd()) return;
+if(turn===1) setTimeout(cpu,700);
 }
 
+/* 👹 調整済みCPU */
 function cpu(){
-let level=cpuLevel();
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
-// 👹鬼モード：完全解答
-if(difficulty==="oni"){
+let useMemory=false;
+
+if(difficulty==="normal") useMemory=Math.random()<0.5;
+if(difficulty==="hard") useMemory=true;
+if(difficulty==="oni") useMemory=Math.random()<0.8; // ←弱体化
+
+let knownPair=null;
+
+if(useMemory){
 for(let key in memory){
-let pair=memory[key].filter(c=>!c.classList.contains("taken"));
-if(pair.length>=2){
-play(pair[0],pair[1]);
-return;
+let cards=memory[key].filter(c=>!c.classList.contains("taken"));
+if(cards.length>=2){
+knownPair=cards;
+break;
 }
 }
 }
 
-// 記憶を使うか
-if(Math.random()<level.memory){
-for(let key in memory){
-let known=memory[key].filter(c=>!c.classList.contains("taken"));
-if(known.length>=2 && Math.random()<level.accuracy){
-play(known[0],known[1]);
-return;
-}
-}
-}
+let c1, c2;
 
-// ランダム
-let c1=choices[Math.floor(Math.random()*choices.length)];
+if(knownPair){
+c1=knownPair[0];
+c2=knownPair[1];
+}else{
+c1=choices[Math.floor(Math.random()*choices.length)];
 let rest=choices.filter(c=>c!==c1);
-let c2=rest[Math.floor(Math.random()*rest.length)];
-play(c1,c2);
+
+if(difficulty==="oni"){
+// 👹 70%だけ一致させる
+if(Math.random()<0.7){
+let match=rest.find(c=>c.dataset.value===c1.dataset.value);
+c2=match || rest[Math.floor(Math.random()*rest.length)];
+}else{
+c2=rest[Math.floor(Math.random()*rest.length)];
+}
+}else{
+c2=rest[Math.floor(Math.random()*rest.length)];
+}
 }
 
-function play(c1,c2){
-flip(c1);first=c1;
+flip(c1); first=c1;
+
 setTimeout(()=>{
-flip(c2);second=c2;
+flip(c2); second=c2;
 judge();
 },400);
 }
 
 function checkEnd(){
 if(document.querySelectorAll(".taken").length===10){
-setTimeout(()=>{
-alert(scores[0]>scores[1]?"勝ち！":"負け…");
-location.reload();
-},300);
+setTimeout(endGame,300);
 return true;
 }
 return false;
+}
+
+function endGame(){
+clearInterval(timerInterval);
+
+let text="";
+if(scores[0]>scores[1]) text="あなたの勝ち！🎉";
+else if(scores[1]>scores[0]) text="CPUの勝ち…👹";
+else text="引き分け！";
+
+document.getElementById("resultText").textContent=text;
+document.getElementById("result").style.display="flex";
+}
+
+function restartGame(){
+document.getElementById("result").style.display="none";
+startGame();
+}
+
+function goHome(){
+clearInterval(timerInterval);
+document.getElementById("result").style.display="none";
+document.getElementById("game").style.display="none";
+document.getElementById("startScreen").style.display="flex";
 }
 </script>
 

@@ -163,7 +163,7 @@ let timerInterval=null;
 let finalTime=0;
 let timeLimit=30;
 
-/* ★モード対応ランキング */
+/* ランキング */
 function loadHomeRanking(){
 let mode=document.getElementById("mode").value;
 
@@ -180,13 +180,14 @@ let html="<b>ランキング</b>";
 data.forEach((d,i)=>{
 html+=`<p>${i+1}位 : ${d.name} - ${d.time}秒</p>`;
 });
-
 if(data.length===0) html+="<p>まだ記録なし</p>";
 
 document.getElementById("homeRanking").innerHTML=html;
 }
 
 function startGame(){
+clearInterval(timerInterval); // ★重要
+
 difficulty=document.getElementById("difficulty").value;
 mode=document.getElementById("mode").value;
 
@@ -201,7 +202,6 @@ let elapsed=Math.floor((Date.now()-startTime)/1000);
 if(mode==="time"){
 let remain=timeLimit - elapsed;
 document.getElementById("timer").textContent=`残り: ${remain}秒`;
-
 if(remain<=0) endGame();
 }else{
 document.getElementById("timer").textContent=`時間: ${elapsed}秒`;
@@ -299,53 +299,7 @@ if(turn===1) setTimeout(cpu,700);
 
 function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
-
-let knownPair=null;
-for(let key in memory){
-let known = memory[key].filter(c=>!c.classList.contains("taken"));
-if(known.length===2){
-knownPair = known;
-break;
-}
-}
-
-let useMemory=false;
-
-if(difficulty==="easy") useMemory=false;
-else if(difficulty==="normal") useMemory=Math.random()<0.5;
-else if(difficulty==="hard") useMemory=true;
-else if(difficulty==="oni") useMemory=Math.random()<0.8;
-
-if(useMemory && knownPair){
-first = knownPair[0];
-flip(first);
-
-setTimeout(()=>{
-second = knownPair[1];
-flip(second);
-judge();
-}, difficulty==="oni"?350:400);
-return;
-}
-
 let c1=choices[Math.floor(Math.random()*choices.length)];
-
-if((difficulty==="hard" || difficulty==="oni") && memory[c1.dataset.value]){
-let mem = memory[c1.dataset.value].find(c=>!c.classList.contains("taken") && c!==c1);
-
-if(mem && (difficulty!=="oni" || Math.random()<0.8)){
-first=c1;
-flip(first);
-
-setTimeout(()=>{
-second=mem;
-flip(second);
-judge();
-},300);
-return;
-}
-}
-
 let rest=choices.filter(c=>c!==c1);
 let c2=rest[Math.floor(Math.random()*rest.length)];
 
@@ -379,30 +333,13 @@ else text="引き分け！";
 document.getElementById("resultText").textContent =
 `${text}（${finalTime}秒）`;
 
-document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
-
-let inputArea=document.getElementById("nameInputArea");
-if(win){
-inputArea.style.display="block";
-document.getElementById("playerName").value =
-localStorage.getItem("playerName") || "";
-}else{
-inputArea.style.display="none";
 }
 
-document.querySelectorAll(".confetti").forEach(e=>e.remove());
-if(win){
-for(let i=0;i<50;i++){
-let c=document.createElement("div");
-c.className="confetti";
-c.style.left=Math.random()*100+"%";
-c.style.background=`hsl(${Math.random()*360},100%,50%)`;
-c.style.animationDuration=(1+Math.random())+"s";
-document.body.appendChild(c);
-setTimeout(()=>c.remove(),2000);
-}
-}
+function restartGame(){
+clearInterval(timerInterval); // ★ここも重要
+document.getElementById("result").style.display="none";
+startGame();
 }
 
 function goHome(){
@@ -410,45 +347,11 @@ clearInterval(timerInterval);
 document.getElementById("result").style.display="none";
 document.getElementById("game").style.display="none";
 document.getElementById("startScreen").style.display="flex";
-
 document.getElementById("timer").textContent="時間: 0秒";
 loadHomeRanking();
 }
 
-function submitScore(){
-let name=document.getElementById("playerName").value.trim();
-if(!name) name="名無し";
-
-localStorage.setItem("playerName", name);
-saveScore(name, finalTime);
-document.getElementById("nameInputArea").innerHTML="<p>登録完了！</p>";
-}
-
-function saveScore(name,time){
-let key="ranking_"+difficulty;
-let data=JSON.parse(localStorage.getItem(key))||[];
-
-if(typeof data[0]==="number"){
-data=data.map(t=>({name:"名無し",time:t}));
-}
-
-data.push({name,time});
-data.sort((a,b)=>a.time-b.time);
-data=data.slice(0,5);
-
-localStorage.setItem(key,JSON.stringify(data));
-showRanking(data);
-}
-
-function showRanking(data){
-let html="<h3>ランキング</h3>";
-data.forEach((d,i)=>{
-html+=`<p>${i+1}位 : ${d.name} - ${d.time}秒</p>`;
-});
-document.getElementById("ranking").innerHTML=html;
-}
-
-/* 初期表示 */
+/* 初期 */
 loadHomeRanking();
 </script>
 

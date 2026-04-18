@@ -19,8 +19,7 @@ background:#fff;
 #startBtn{
 font-size:32px;
 padding:20px 80px;
-border:none;
-border-radius:15px;
+border:none;border-radius:15px;
 background:#000;color:#fff;
 cursor:pointer;
 transition:0.2s;
@@ -99,37 +98,31 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* カード（ランクごとに整理） */
-const cardGroups = {
-A:["AS","AH","AC","AD"],
-K:["KS","KH","KC","KD"],
-Q:["QS","QH","QC","QD"]
-};
+/* ランクとスート */
+const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const suits=["S","H","D","C"];
 
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-/* ★バランス選択 */
+/* ★完全バランスカード生成 */
 function getBalancedCards(count){
 let result=[];
-let keys=Object.keys(cardGroups);
+let shuffledRanks=[...ranks].sort(()=>Math.random()-0.5);
 
-/* 均等配分 */
-while(result.length < count){
-for(let k of keys){
-if(result.length >= count) break;
-
-let group=cardGroups[k];
-let card=group[Math.floor(Math.random()*group.length)];
+let i=0;
+while(result.length<count){
+let r=shuffledRanks[i % shuffledRanks.length];
+let s=suits[Math.floor(Math.random()*suits.length)];
+let card=r+s;
 
 if(!result.includes(card)){
 result.push(card);
 }
-}
+i++;
 }
 
-/* 最後シャッフル */
-return result.sort(()=>Math.random()-0.5);
+return result;
 }
 
 let stage=1;
@@ -153,15 +146,11 @@ init();
 
 function init(){
 let pair=pairCounts[stage-1];
-
-/* ★ここが完全修正 */
 let cards=getBalancedCards(pair);
-
 let deck=[...cards,...cards].sort(()=>Math.random()-0.5);
 
 let board=document.getElementById("board");
 board.innerHTML="";
-
 board.style.gridTemplateColumns=`repeat(${Math.ceil(Math.sqrt(pair*2))},1fr)`;
 
 first=null; second=null; lock=false;

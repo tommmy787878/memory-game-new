@@ -13,26 +13,42 @@ position:fixed;width:100%;height:100%;
 background:#fff;display:flex;
 flex-direction:column;justify-content:center;align-items:center;
 }
-.title{ font-size:60px; letter-spacing:8px; margin-bottom:30px; }
-select{ padding:14px 24px; margin-bottom:15px; font-size:22px; }
+.title{ font-size:60px; letter-spacing:8px; margin-bottom:20px; }
+
+select{ padding:14px 24px; margin-bottom:10px; font-size:20px; }
+
 button{
-padding:18px 60px;font-size:24px;
+padding:16px 50px;font-size:22px;
 border:none;border-radius:10px;
 cursor:pointer;transition:0.2s;
 }
 button:hover{ transform:scale(1.05); }
 button:active{ transform:scale(0.9); }
+
 #startBtn{ background:#000;color:#fff; }
 
+/* ランキング（ホーム） */
+#homeRanking{
+margin-top:20px;
+background:#f3f4f6;
+padding:15px 25px;
+border-radius:12px;
+width:260px;
+text-align:left;
+}
+
+/* ゲーム */
 #game{
 display:none;background:#0f172a;color:white;
 min-height:100vh;text-align:center;
 }
+
 .board{
 display:grid;
 grid-template-columns:repeat(5,1fr);
 gap:10px;padding:10px;
 }
+
 .card{ aspect-ratio:3/4; perspective:800px; }
 .inner{
 width:100%;height:100%;
@@ -40,20 +56,24 @@ transition:0.4s;transform-style:preserve-3d;
 position:relative;
 }
 .card.flip .inner{ transform:rotateY(180deg) scale(1.05); }
+
 .face{
 position:absolute;width:100%;height:100%;
 backface-visibility:hidden;
 }
 .face img{ width:100%;height:100%;border-radius:10px; }
+
 .front{ transform:rotateY(180deg); }
 .taken{ opacity:0.4; }
 
+/* 結果 */
 #result{
 position:fixed;top:0;left:0;
 width:100%;height:100%;
 display:none;justify-content:center;align-items:center;
 flex-direction:column;background:rgba(0,0,0,0.9);color:white;
 }
+
 #resultText{ font-size:42px;color:gold;margin-bottom:10px; }
 
 #nameInputArea{ margin:15px; }
@@ -87,7 +107,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <option value="time">制限時間モード（30秒）</option>
 </select>
 
-<select id="difficulty">
+<select id="difficulty" onchange="loadHomeRanking()">
 <option value="easy">やさしい</option>
 <option value="normal" selected>ふつう</option>
 <option value="hard">むずかしい</option>
@@ -96,6 +116,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <button id="startBtn" onclick="startGame()">あそぶ</button>
 
+<div id="homeRanking"></div>
 </div>
 
 <div id="game">
@@ -122,7 +143,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <div id="ranking"></div>
 
-<button onclick="restartGame()">もう一度</button>
+<button onclick="restartGame()">もう一度</button> <button onclick="goHome()">ホームに戻る</button>
 
 </div>
 
@@ -141,7 +162,23 @@ let mode="normal";
 let startTime=0;
 let timerInterval=null;
 let finalTime=0;
-let timeLimit=30; // ★30秒固定
+let timeLimit=30;
+
+/* ホームランキング表示 */
+function loadHomeRanking(){
+let diff=document.getElementById("difficulty").value;
+let key="ranking_"+diff;
+let data=JSON.parse(localStorage.getItem(key))||[];
+
+let html="<b>ランキング</b>";
+data.forEach((d,i)=>{
+html+=`<p>${i+1}位 : ${d.name} - ${d.time}秒</p>`;
+});
+
+if(data.length===0) html+="<p>まだ記録なし</p>";
+
+document.getElementById("homeRanking").innerHTML=html;
+}
 
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
@@ -159,9 +196,7 @@ if(mode==="time"){
 let remain=timeLimit - elapsed;
 document.getElementById("timer").textContent=`残り: ${remain}秒`;
 
-if(remain<=0){
-endGame();
-}
+if(remain<=0) endGame();
 }else{
 document.getElementById("timer").textContent=`時間: ${elapsed}秒`;
 }
@@ -256,9 +291,7 @@ if(checkEnd()) return;
 if(turn===1) setTimeout(cpu,700);
 }
 
-/* 👹バランス調整済みCPU */
 function cpu(){
-
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
 let knownPair=null;
@@ -272,18 +305,10 @@ break;
 
 let useMemory=false;
 
-if(difficulty==="easy"){
-useMemory=false;
-}
-else if(difficulty==="normal"){
-useMemory=Math.random()<0.5;
-}
-else if(difficulty==="hard"){
-useMemory=true;
-}
-else if(difficulty==="oni"){
-useMemory=Math.random()<0.8;
-}
+if(difficulty==="easy") useMemory=false;
+else if(difficulty==="normal") useMemory=Math.random()<0.5;
+else if(difficulty==="hard") useMemory=true;
+else if(difficulty==="oni") useMemory=Math.random()<0.8;
 
 if(useMemory && knownPair){
 first = knownPair[0];
@@ -374,6 +399,16 @@ setTimeout(()=>c.remove(),2000);
 }
 }
 
+function goHome(){
+clearInterval(timerInterval);
+document.getElementById("result").style.display="none";
+document.getElementById("game").style.display="none";
+document.getElementById("startScreen").style.display="flex";
+
+document.getElementById("timer").textContent="時間: 0秒";
+loadHomeRanking();
+}
+
 function submitScore(){
 let name=document.getElementById("playerName").value.trim();
 if(!name) name="名無し";
@@ -407,17 +442,8 @@ html+=`<p>${i+1}位 : ${d.name} - ${d.time}秒</p>`;
 document.getElementById("ranking").innerHTML=html;
 }
 
-function restartGame(){
-let diff=document.getElementById("difficultyResult").value;
-document.getElementById("difficulty").value=diff;
-document.getElementById("result").style.display="none";
-
-document.getElementById("nameInputArea").innerHTML=
-'<input id="playerName" placeholder="名前を入力" maxlength="10"><button onclick="submitScore()">登録</button>';
-document.getElementById("nameInputArea").style.display="block";
-
-startGame();
-}
+/* 初期表示 */
+loadHomeRanking();
 </script>
 
 </body>

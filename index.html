@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -87,6 +88,7 @@ animation:fall linear forwards;
 to{ transform:translateY(100vh) rotate(720deg); }
 }
 </style>
+
 </head>
 
 <body>
@@ -102,6 +104,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 </select>
 
 <button id="startBtn" onclick="startGame()">あそぶ</button>
+
 </div>
 
 <div id="game">
@@ -121,7 +124,6 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <option value="oni">鬼モード👹</option>
 </select>
 
-<!-- 名前入力 -->
 <div id="nameInputArea">
 <input id="playerName" placeholder="名前を入力" maxlength="10">
 <button onclick="submitScore()">登録</button>
@@ -130,6 +132,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <div id="ranking"></div>
 
 <button onclick="restartGame()">もう一度</button>
+
 </div>
 
 <script>
@@ -247,9 +250,81 @@ if(checkEnd()) return;
 if(turn===1) setTimeout(cpu,700);
 }
 
+/* ===== ここだけ強化済みCPU ===== */
 function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
+
+// 記憶からペア取得
+let knownPair=null;
+for(let key in memory){
+let known = memory[key].filter(c=>!c.classList.contains("taken"));
+if(known.length===2){
+knownPair = known;
+break;
+}
+}
+
+// 難易度判定
+let useMemory=false;
+
+if(difficulty==="easy"){
+useMemory=false;
+}
+else if(difficulty==="normal"){
+useMemory = Math.random()<0.5;
+}
+else if(difficulty==="hard"){
+useMemory = true;
+}
+else if(difficulty==="oni"){
+useMemory = true;
+}
+
+// 👹鬼モード（最強）
+if(difficulty==="oni" && knownPair){
+first = knownPair[0];
+flip(first);
+
+setTimeout(()=>{
+second = knownPair[1];
+flip(second);
+judge();
+},200);
+return;
+}
+
+// 記憶使用
+if(useMemory && knownPair){
+first = knownPair[0];
+flip(first);
+
+setTimeout(()=>{
+second = knownPair[1];
+flip(second);
+judge();
+},400);
+return;
+}
+
+// 推理（hard以上）
 let c1=choices[Math.floor(Math.random()*choices.length)];
+
+if((difficulty==="hard" || difficulty==="oni") && memory[c1.dataset.value]){
+let mem = memory[c1.dataset.value].find(c=>!c.classList.contains("taken") && c!==c1);
+if(mem){
+first=c1;
+flip(first);
+
+setTimeout(()=>{
+second=mem;
+flip(second);
+judge();
+},300);
+return;
+}
+}
+
+// 完全ランダム
 let rest=choices.filter(c=>c!==c1);
 let c2=rest[Math.floor(Math.random()*rest.length)];
 
@@ -260,6 +335,7 @@ flip(c2); second=c2;
 judge();
 },400);
 }
+/* ===== ここまで ===== */
 
 function checkEnd(){
 if(document.querySelectorAll(".taken").length===10){
@@ -284,11 +360,9 @@ document.getElementById("resultText").textContent =
 document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
 
-/* 名前復元 */
 document.getElementById("playerName").value =
 localStorage.getItem("playerName") || "";
 
-/* 紙吹雪 */
 document.querySelectorAll(".confetti").forEach(e=>e.remove());
 for(let i=0;i<50;i++){
 let c=document.createElement("div");
@@ -305,12 +379,10 @@ function submitScore(){
 let name=document.getElementById("playerName").value.trim();
 if(!name) name="名無し";
 
-/* 名前保存 */
 localStorage.setItem("playerName", name);
 
 saveScore(name, finalTime);
 
-/* 二重登録防止 */
 document.getElementById("nameInputArea").innerHTML="<p>登録完了！</p>";
 }
 
@@ -343,7 +415,6 @@ let diff=document.getElementById("difficultyResult").value;
 document.getElementById("difficulty").value=diff;
 document.getElementById("result").style.display="none";
 
-/* 入力欄リセット */
 document.getElementById("nameInputArea").innerHTML=
 '<input id="playerName" placeholder="名前を入力" maxlength="10"><button onclick="submitScore()">登録</button>';
 

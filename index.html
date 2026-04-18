@@ -7,75 +7,57 @@
 <title>神経衰弱</title>
 
 <style>
-html,body{
-margin:0;
-height:100%;
-overflow:hidden;
-font-family:sans-serif;
-}
-
-/* タイトル */
-.title{
-font-size:clamp(28px,8vw,64px);
-animation:titleAnim 1.2s ease;
-}
-@keyframes titleAnim{
-0%{opacity:0;transform:scale(0.5);}
-100%{opacity:1;transform:scale(1);}
-}
+body { margin:0; font-family:sans-serif; }
 
 /* スタート */
 #startScreen{
 position:fixed;width:100%;height:100%;
+background:#fff;color:#000;
 display:flex;flex-direction:column;
 justify-content:center;align-items:center;
-background:#fff;
 }
 
-select,button,input{
-padding:10px;
-font-size:clamp(14px,4vw,20px);
-margin:6px;
+.title{ font-size:60px; margin-bottom:30px; }
+
+select{
+padding:14px 24px;
+font-size:22px;
+margin-bottom:20px;
+border:2px solid #000;
 }
 
 /* ボタン */
 button{
-border:none;border-radius:10px;
+padding:18px 60px;
+font-size:24px;
+border:none;
+border-radius:10px;
 cursor:pointer;
 transition:0.2s;
 }
-button:hover{transform:scale(1.05);}
-button:active{transform:scale(0.9);}
+
+button:hover{ transform:scale(1.05); }
+button:active{ transform:scale(0.9); }
+
+#startBtn{ background:#000;color:#fff; }
 
 /* ゲーム */
 #game{
 display:none;
-height:100%;
 background:#0f172a;
 color:white;
+min-height:100vh;
 text-align:center;
-display:flex;
-flex-direction:column;
 }
 
-h2,h3,p{
-margin:4px;
-font-size:clamp(14px,4vw,20px);
-}
-
-/* ボード */
 .board{
 display:grid;
-gap:4px;
-padding:4px;
-flex:1; /* ←ここ重要 */
+grid-template-columns:repeat(5,1fr);
+gap:10px;
+padding:10px;
 }
 
-.card{
-aspect-ratio:3/4;
-width:100%;
-perspective:800px;
-}
+.card{ aspect-ratio:3/4; perspective:800px; }
 
 .inner{
 width:100%;height:100%;
@@ -84,9 +66,7 @@ transform-style:preserve-3d;
 position:relative;
 }
 
-.card.flip .inner{
-transform:rotateY(180deg);
-}
+.card.flip .inner{ transform:rotateY(180deg) scale(1.05); }
 
 .face{
 position:absolute;
@@ -95,33 +75,43 @@ backface-visibility:hidden;
 }
 
 .face img{
-width:100%;
-height:100%;
-border-radius:8px;
+width:100%;height:100%;
+border-radius:10px;
 }
 
-.front{transform:rotateY(180deg);}
-.taken{opacity:0.4;}
+.front{ transform:rotateY(180deg); }
+.taken{ opacity:0.4; }
+
+/* 情報 */
+#info{
+margin:10px;
+}
 
 /* 結果 */
 #result{
-position:fixed;width:100%;height:100%;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
 display:none;
-flex-direction:column;
 justify-content:center;
 align-items:center;
+flex-direction:column;
 background:rgba(0,0,0,0.9);
 color:white;
 }
 
-#nameBox{
-background:#fff;color:#000;
-padding:10px;
-border-radius:10px;
+#resultText{ font-size:40px; color:gold; }
+#timeText, #highScore{ margin-top:10px; font-size:22px; }
+
+/* 紙吹雪 */
+.confetti{
+position:fixed;
+width:8px;height:12px;
+animation:fall linear forwards;
 }
 
-#ranking{
-font-size:clamp(12px,3.5vw,18px);
+@keyframes fall{
+to{ transform:translateY(100vh) rotate(720deg); }
 }
 </style>
 
@@ -136,117 +126,85 @@ font-size:clamp(12px,3.5vw,18px);
 
 <select id="difficulty">
 <option value="easy">やさしい</option>
-<option value="normal">ふつう</option>
+<option value="normal" selected>ふつう</option>
 <option value="hard">むずかしい</option>
-<option value="oni">鬼モード🔥</option>
 </select>
 
-<select id="mode">
-<option value="normal">通常</option>
-<option value="time">制限時間</option>
-</select>
-
-<button onclick="startGame()">あそぶ</button>
+<button id="startBtn" onclick="startGame()">あそぶ</button>
 
 </div>
 
 <!-- ゲーム -->
 
 <div id="game">
-<h2 id="stageText"></h2>
-<h3 id="turnText"></h3>
-<p id="score"></p>
-<p id="timer"></p>
+<div id="info">
+<h2 id="turnText">あなたのターン</h2>
+<p id="score">あなた:0 / CPU:0</p>
+<p id="timer">タイム: 0秒</p>
+</div>
 <div class="board" id="board"></div>
 </div>
 
 <!-- 結果 -->
 
 <div id="result">
-<h2 id="resultText"></h2>
-<p id="timeText"></p>
+<div id="resultText"></div>
+<div id="timeText"></div>
+<div id="highScore"></div>
 
-<div id="nameBox">
-<input id="playerName" placeholder="名前" maxlength="10">
-<br>
-<button onclick="saveScore()">決定</button>
-</div>
+<select id="difficultyResult">
+<option value="easy">やさしい</option>
+<option value="normal">ふつう</option>
+<option value="hard">むずかしい</option>
+</select>
 
-<div id="ranking"></div>
-
-<button onclick="restart()">もう一度</button>
+<button onclick="restartGame()">もう一度あそぶ</button>
 
 </div>
 
 <script>
-const cardSets={
-easy:["AS","AH","KD"],
-normal:["AS","AH","KD","KC","QS"],
-hard:["AS","AH","KD","KC","QS","QD","JC","JD"],
-oni:["AS","AH","KD","KC","QS","QD","JC","JD","10S","10H"]
-};
-
+const baseCards=["AS","AH","KD","KC","QS"];
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-let difficulty,mode,stage;
-let first,second,lock,turn,scores,memory;
-let startTime,timerInterval;
+let first=null, second=null, lock=false;
+let turn=0;
+let scores=[0,0];
+let memory={};
+let difficulty="normal";
+
+let startTime;
+let timerInterval;
 
 /* スタート */
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
-mode=document.getElementById("mode").value;
 
 document.getElementById("startScreen").style.display="none";
-document.getElementById("game").style.display="flex";
+document.getElementById("game").style.display="block";
 
-stage=1;
-startTimer();
+startTime=Date.now();
+timerInterval=setInterval(updateTimer,1000);
+
 init();
 }
 
-function startTimer(){
-startTime=Date.now();
-clearInterval(timerInterval);
-timerInterval=setInterval(updateTimer,1000);
-}
-
+/* タイマー */
 function updateTimer(){
 let t=Math.floor((Date.now()-startTime)/1000);
-document.getElementById("timer").textContent=`タイム:${t}`;
-
-if(mode==="time" && t>=(difficulty==="oni"?45:60)){
-endGame(true);
-}
+document.getElementById("timer").textContent=`タイム: ${t}秒`;
 }
 
 /* 初期化 */
 function init(){
 let board=document.getElementById("board");
 board.innerHTML="";
+first=null; second=null; lock=false;
+turn=0;
+scores=[0,0];
+memory={};
 
-first=null;second=null;lock=false;
-turn=0;scores=[0,0];memory={};
-
-document.getElementById("stageText").textContent=`ステージ ${stage}`;
-
-let base=cardSets[difficulty];
-let deck=[...base,...base].sort(()=>Math.random()-0.5);
-
-/* 列数を固定で決定 */
-let cols;
-if(deck.length<=6){
-cols=3;
-}else if(deck.length<=10){
-cols=4;
-}else if(deck.length<=16){
-cols=4;
-}else{
-cols=5;
-}
-
-board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+let deck=[...baseCards,...baseCards].sort(()=>Math.random()-0.5);
 
 deck.forEach(c=>{
 let card=document.createElement("div");
@@ -256,13 +214,19 @@ card.dataset.value=c;
 let inner=document.createElement("div");
 inner.className="inner";
 
-inner.innerHTML=`
-<div class="face front"><img src="${getImg(c)}"></div>
-<div class="face back"><img src="${backImg}"></div>
-`;
+let front=document.createElement("div");
+front.className="face front";
+front.innerHTML=`<img src="${getImg(c)}">`;
 
+let back=document.createElement("div");
+back.className="face back";
+back.innerHTML=`<img src="${backImg}">`;
+
+inner.append(front,back);
 card.appendChild(inner);
-card.onclick=()=>click(card);
+
+card.onclick=()=>onClick(card);
+
 board.appendChild(card);
 });
 
@@ -270,27 +234,35 @@ update();
 }
 
 function update(){
-document.getElementById("turnText").textContent=
-turn===0?"あなた":"CPU";
+document.getElementById("turnText").textContent =
+turn===0?"あなたのターン":"CPUのターン";
 
-document.getElementById("score").textContent=
+document.getElementById("score").textContent =
 `あなた:${scores[0]} / CPU:${scores[1]}`;
 }
 
-function click(card){
-if(turn!==0||lock||card.classList.contains("flip")||card.classList.contains("taken"))return;
+function onClick(card){
+if(turn!==0 || lock || card.classList.contains("flip") || card.classList.contains("taken")) return;
 
 flip(card);
-if(!first){first=card;return;}
+
+if(!first){
+first=card;
+return;
+}
+
 second=card;
 judge();
 }
 
 function flip(card){
 card.classList.add("flip");
+
 let v=card.dataset.value;
 memory[v]=memory[v]||[];
-if(!memory[v].includes(card))memory[v].push(card);
+if(!memory[v].includes(card)){
+memory[v].push(card);
+}
 }
 
 function judge(){
@@ -304,92 +276,111 @@ scores[turn]++;
 reset(true);
 }else{
 first.classList.remove("flip");
-second.classList.remove("flip");
-if(difficulty==="oni") turn=1;
+second.card.classList.remove("flip");
 reset(false);
 }
-},500);
+},600);
 }
 
 function reset(success){
-first=null;second=null;lock=false;
-if(!success && difficulty!=="oni") turn=1-turn;
+first=null; second=null; lock=false;
+
+if(!success) turn=1-turn;
 update();
 
-if(checkEnd())return;
-if(turn===1)setTimeout(cpu,500);
+if(checkEnd()) return;
+
+if(turn===1){
+setTimeout(cpu,700);
+}
 }
 
-/* CPU */
 function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 let c1,c2;
 
-let pair=Object.values(memory).find(v=>v.length===2&&!v[0].classList.contains("taken"));
-if(pair){[c1,c2]=pair;}
+if(difficulty==="hard"){
+let pair = Object.values(memory).find(v=>v.length===2 && !v[0].classList.contains("taken"));
+if(pair){ [c1,c2]=pair; }
+}
+
+if(!c1 && difficulty==="normal"){
+if(Math.random()<0.5){
+let pair = Object.values(memory).find(v=>v.length===2 && !v[0].classList.contains("taken"));
+if(pair){ [c1,c2]=pair; }
+}
+}
 
 if(!c1){
 c1=choices[Math.floor(Math.random()*choices.length)];
-do{c2=choices[Math.floor(Math.random()*choices.length)];
+do{
+c2=choices[Math.floor(Math.random()*choices.length)];
 }while(c1===c2);
 }
 
-flip(c1);first=c1;
+flip(c1); first=c1;
+
 setTimeout(()=>{
-flip(c2);second=c2;
+flip(c2); second=c2;
 judge();
-},300);
+},400);
 }
 
 function checkEnd(){
-let total=document.querySelectorAll(".card").length;
-if(document.querySelectorAll(".taken").length===total){
-stage++;
-if(stage<=3){
-setTimeout(init,700);
-}else{
-setTimeout(()=>endGame(false),300);
-}
+if(document.querySelectorAll(".taken").length===10){
+setTimeout(endGame,300);
 return true;
 }
 return false;
 }
 
 /* 終了 */
-function endGame(timeout=false){
+function endGame(){
 clearInterval(timerInterval);
 
 let time=Math.floor((Date.now()-startTime)/1000);
-let text=timeout?"時間切れ":
-(scores[0]>scores[1]?"勝ち！":
-scores[1]>scores[0]?"負け":"引き分け");
+
+let text="";
+if(scores[0]>scores[1]) text="あなたの勝ち！🎉";
+else if(scores[1]>scores[0]) text="CPUの勝ち！";
+else text="引き分け！";
 
 document.getElementById("resultText").textContent=text;
-document.getElementById("timeText").textContent=`タイム:${time}秒`;
+document.getElementById("timeText").textContent=`タイム: ${time}秒`;
+
+/* ハイスコア */
+let key="best_"+difficulty;
+let best=parseInt(localStorage.getItem(key)||"9999");
+
+if(time<best){
+best=time;
+localStorage.setItem(key,best);
+}
+
+document.getElementById("highScore").textContent=
+`最速記録: ${best}秒`;
+
+document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
+
+/* 紙吹雪 */
+for(let i=0;i<100;i++){
+let c=document.createElement("div");
+c.className="confetti";
+c.style.left=Math.random()*100+"%";
+c.style.background=`hsl(${Math.random()*360},100%,50%)`;
+c.style.animationDuration=(1+Math.random())+"s";
+document.body.appendChild(c);
+setTimeout(()=>c.remove(),2000);
+}
 }
 
-/* ランキング */
-function saveScore(){
-let name=document.getElementById("playerName").value||"名無し";
-let key=`rank_${difficulty}_${mode}`;
-let rank=JSON.parse(localStorage.getItem(key)||"[]");
-
-let time=parseInt(document.getElementById("timeText").textContent.replace(/\D/g,""));
-
-rank.push({name,time});
-rank.sort((a,b)=>a.time-b.time);
-rank=rank.slice(0,5);
-
-localStorage.setItem(key,JSON.stringify(rank));
-
-let html="<h3>ランキング</h3>";
-rank.forEach((r,i)=>html+=`${i+1}. ${r.name} ${r.time}秒<br>`);
-document.getElementById("ranking").innerHTML=html;
-}
-
-function restart(){
-location.reload();
+/* 再スタート */
+function restartGame(){
+let diff=document.getElementById("difficultyResult").value;
+document.getElementById("difficulty").value=diff;
+document.getElementById("result").style.display="none";
+startGame();
 }
 </script>
 

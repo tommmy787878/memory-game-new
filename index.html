@@ -163,7 +163,7 @@ let timerInterval=null;
 let finalTime=0;
 let timeLimit=30;
 
-/* ホームランキング */
+/* ランキング */
 function loadHomeRanking(){
 let mode=document.getElementById("mode").value;
 
@@ -173,7 +173,8 @@ return;
 }
 
 let diff=document.getElementById("difficulty").value;
-let data=getRanking(diff);
+let key="ranking_"+diff;
+let data=JSON.parse(localStorage.getItem(key))||[];
 
 let html="<b>ランキング</b>";
 data.forEach((d,i)=>{
@@ -184,21 +185,8 @@ if(data.length===0) html+="<p>まだ記録なし</p>";
 document.getElementById("homeRanking").innerHTML=html;
 }
 
-/* 共通取得 */
-function getRanking(diff){
-let key="ranking_"+diff;
-let data=JSON.parse(localStorage.getItem(key))||[];
-
-/* データ整形 */
-if(data.length && typeof data[0]==="number"){
-data=data.map(t=>({name:"名無し",time:t}));
-}
-
-return data;
-}
-
 function startGame(){
-clearInterval(timerInterval);
+clearInterval(timerInterval); // ★重要
 
 difficulty=document.getElementById("difficulty").value;
 mode=document.getElementById("mode").value;
@@ -346,51 +334,10 @@ document.getElementById("resultText").textContent =
 `${text}（${finalTime}秒）`;
 
 document.getElementById("result").style.display="flex";
-
-/* ★ランキング表示 */
-showRanking(getRanking(difficulty));
-
-let inputArea=document.getElementById("nameInputArea");
-inputArea.style.display = win ? "block" : "none";
-
-if(win){
-document.getElementById("playerName").value =
-localStorage.getItem("playerName") || "";
-}
-}
-
-function submitScore(){
-let name=document.getElementById("playerName").value.trim();
-if(!name) name="名無し";
-
-localStorage.setItem("playerName", name);
-
-let key="ranking_"+difficulty;
-let data=getRanking(difficulty);
-
-data.push({name,time:finalTime});
-data.sort((a,b)=>a.time-b.time);
-data=data.slice(0,5);
-
-localStorage.setItem(key,JSON.stringify(data));
-
-/* ★即反映 */
-showRanking(data);
-loadHomeRanking();
-
-document.getElementById("nameInputArea").innerHTML="<p>登録完了！</p>";
-}
-
-function showRanking(data){
-let html="<h3>ランキング</h3>";
-data.forEach((d,i)=>{
-html+=`<p>${i+1}位 : ${d.name} - ${d.time}秒</p>`;
-});
-document.getElementById("ranking").innerHTML=html;
 }
 
 function restartGame(){
-clearInterval(timerInterval);
+clearInterval(timerInterval); // ★ここも重要
 document.getElementById("result").style.display="none";
 startGame();
 }

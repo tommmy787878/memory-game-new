@@ -14,7 +14,7 @@ overflow:hidden;
 font-family:sans-serif;
 }
 
-/* ===== タイトル ===== */
+/* タイトル */
 .title{
 font-size:clamp(28px,8vw,64px);
 animation:titleAnim 1.2s ease;
@@ -24,7 +24,7 @@ animation:titleAnim 1.2s ease;
 100%{opacity:1;transform:scale(1);}
 }
 
-/* ===== スタート ===== */
+/* スタート */
 #startScreen{
 position:fixed;width:100%;height:100%;
 display:flex;flex-direction:column;
@@ -47,7 +47,7 @@ transition:0.2s;
 button:hover{transform:scale(1.05);}
 button:active{transform:scale(0.9);}
 
-/* ===== ゲーム ===== */
+/* ゲーム */
 #game{
 display:none;
 height:100%;
@@ -56,7 +56,6 @@ color:white;
 text-align:center;
 display:flex;
 flex-direction:column;
-justify-content:center;
 }
 
 h2,h3,p{
@@ -67,9 +66,9 @@ font-size:clamp(14px,4vw,20px);
 /* ボード */
 .board{
 display:grid;
-gap:6px;
-padding:6px;
-height:70vh;
+gap:4px;
+padding:4px;
+flex:1; /* ←ここ重要 */
 }
 
 .card{
@@ -86,7 +85,7 @@ position:relative;
 }
 
 .card.flip .inner{
-transform:rotateY(180deg) scale(1.05);
+transform:rotateY(180deg);
 }
 
 .face{
@@ -104,7 +103,7 @@ border-radius:8px;
 .front{transform:rotateY(180deg);}
 .taken{opacity:0.4;}
 
-/* ===== 結果 ===== */
+/* 結果 */
 #result{
 position:fixed;width:100%;height:100%;
 display:none;
@@ -235,7 +234,18 @@ document.getElementById("stageText").textContent=`ステージ ${stage}`;
 let base=cardSets[difficulty];
 let deck=[...base,...base].sort(()=>Math.random()-0.5);
 
-let cols=Math.ceil(Math.sqrt(deck.length));
+/* 列数を固定で決定 */
+let cols;
+if(deck.length<=6){
+cols=3;
+}else if(deck.length<=10){
+cols=4;
+}else if(deck.length<=16){
+cols=4;
+}else{
+cols=5;
+}
+
 board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
 
 deck.forEach(c=>{

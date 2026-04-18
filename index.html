@@ -9,7 +9,7 @@
 <style>
 body { margin:0; font-family:sans-serif; }
 
-/* スタート */
+/* ===== スタート画面 ===== */
 #startScreen{
 position:fixed;width:100%;height:100%;
 background:#fff;color:#000;
@@ -17,16 +17,21 @@ display:flex;flex-direction:column;
 justify-content:center;align-items:center;
 }
 
-.title{ font-size:60px; margin-bottom:30px; }
+.title{
+font-size:60px;
+letter-spacing:8px;
+margin-bottom:30px;
+}
 
+/* ===== UI強化 ===== */
 select{
 padding:14px 24px;
+margin-bottom:25px;
 font-size:22px;
-margin-bottom:20px;
 border:2px solid #000;
 }
 
-/* ボタン */
+/* ボタン共通 */
 button{
 padding:18px 60px;
 font-size:24px;
@@ -36,12 +41,29 @@ cursor:pointer;
 transition:0.2s;
 }
 
-button:hover{ transform:scale(1.05); }
-button:active{ transform:scale(0.9); }
+/* スタートボタン */
+#startBtn{
+background:#000;color:#fff;
+letter-spacing:4px;
+}
 
-#startBtn{ background:#000;color:#fff; }
+/* 結果ボタン */
+#result button{
+background:#fff;
+color:#000;
+margin-top:20px;
+}
 
-/* ゲーム */
+/* ===== ボタンアニメーション ===== */
+button:hover{
+transform:scale(1.05);
+}
+
+button:active{
+transform:scale(0.9);
+}
+
+/* ===== ゲーム ===== */
 #game{
 display:none;
 background:#0f172a;
@@ -82,12 +104,7 @@ border-radius:10px;
 .front{ transform:rotateY(180deg); }
 .taken{ opacity:0.4; }
 
-/* 情報 */
-#info{
-margin:10px;
-}
-
-/* 結果 */
+/* ===== 結果画面 ===== */
 #result{
 position:fixed;
 top:0;left:0;
@@ -100,8 +117,11 @@ background:rgba(0,0,0,0.9);
 color:white;
 }
 
-#resultText{ font-size:40px; color:gold; }
-#timeText, #highScore{ margin-top:10px; font-size:22px; }
+#resultText{
+font-size:42px;
+color:gold;
+margin-bottom:10px;
+}
 
 /* 紙吹雪 */
 .confetti{
@@ -125,9 +145,9 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <div class="title">神経衰弱</div>
 
 <select id="difficulty">
-<option value="easy">やさしい</option>
+<option value="easy">やさしい（CPUよわい）</option>
 <option value="normal" selected>ふつう</option>
-<option value="hard">むずかしい</option>
+<option value="hard">むずかしい（CPUつよい）</option>
 </select>
 
 <button id="startBtn" onclick="startGame()">あそぶ</button>
@@ -137,11 +157,8 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <!-- ゲーム -->
 
 <div id="game">
-<div id="info">
 <h2 id="turnText">あなたのターン</h2>
 <p id="score">あなた:0 / CPU:0</p>
-<p id="timer">タイム: 0秒</p>
-</div>
 <div class="board" id="board"></div>
 </div>
 
@@ -149,8 +166,6 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <div id="result">
 <div id="resultText"></div>
-<div id="timeText"></div>
-<div id="highScore"></div>
 
 <select id="difficultyResult">
 <option value="easy">やさしい</option>
@@ -173,29 +188,14 @@ let scores=[0,0];
 let memory={};
 let difficulty="normal";
 
-let startTime;
-let timerInterval;
-
-/* スタート */
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
 
 document.getElementById("startScreen").style.display="none";
 document.getElementById("game").style.display="block";
-
-startTime=Date.now();
-timerInterval=setInterval(updateTimer,1000);
-
 init();
 }
 
-/* タイマー */
-function updateTimer(){
-let t=Math.floor((Date.now()-startTime)/1000);
-document.getElementById("timer").textContent=`タイム: ${t}秒`;
-}
-
-/* 初期化 */
 function init(){
 let board=document.getElementById("board");
 board.innerHTML="";
@@ -276,7 +276,7 @@ scores[turn]++;
 reset(true);
 }else{
 first.classList.remove("flip");
-second.card.classList.remove("flip");
+second.classList.remove("flip");
 reset(false);
 }
 },600);
@@ -297,8 +297,10 @@ setTimeout(cpu,700);
 
 function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
+
 let c1,c2;
 
+// 難易度別AI
 if(difficulty==="hard"){
 let pair = Object.values(memory).find(v=>v.length===2 && !v[0].classList.contains("taken"));
 if(pair){ [c1,c2]=pair; }
@@ -334,33 +336,17 @@ return true;
 return false;
 }
 
-/* 終了 */
 function endGame(){
-clearInterval(timerInterval);
-
-let time=Math.floor((Date.now()-startTime)/1000);
-
 let text="";
 if(scores[0]>scores[1]) text="あなたの勝ち！🎉";
 else if(scores[1]>scores[0]) text="CPUの勝ち！";
 else text="引き分け！";
 
 document.getElementById("resultText").textContent=text;
-document.getElementById("timeText").textContent=`タイム: ${time}秒`;
 
-/* ハイスコア */
-let key="best_"+difficulty;
-let best=parseInt(localStorage.getItem(key)||"9999");
+let diff=document.getElementById("difficulty").value;
+document.getElementById("difficultyResult").value=diff;
 
-if(time<best){
-best=time;
-localStorage.setItem(key,best);
-}
-
-document.getElementById("highScore").textContent=
-`最速記録: ${best}秒`;
-
-document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
 
 /* 紙吹雪 */
@@ -375,7 +361,6 @@ setTimeout(()=>c.remove(),2000);
 }
 }
 
-/* 再スタート */
 function restartGame(){
 let diff=document.getElementById("difficultyResult").value;
 document.getElementById("difficulty").value=diff;

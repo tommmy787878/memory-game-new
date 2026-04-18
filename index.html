@@ -1,99 +1,27 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神経衰弱</title>
+<title>神経衰弱（強化版）</title>
 
 <style>
-body { margin:0; font-family:sans-serif; }
-#startScreen{
-position:fixed;width:100%;height:100%;
-background:#fff;display:flex;
-flex-direction:column;justify-content:center;align-items:center;
-}
-.title{ font-size:60px; letter-spacing:8px; margin-bottom:20px; }
+body{margin:0;font-family:sans-serif;}
+#startScreen{position:fixed;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+.title{font-size:50px;margin-bottom:20px;}
 
-select{ padding:14px 24px; margin-bottom:10px; font-size:20px; }
+button{padding:12px 30px;font-size:18px;margin-top:10px;}
 
-button{
-padding:16px 50px;font-size:22px;
-border:none;border-radius:10px;
-cursor:pointer;transition:0.2s;
-}
-button:hover{ transform:scale(1.05); }
-button:active{ transform:scale(0.9); }
+#game{display:none;background:#0f172a;color:#fff;min-height:100vh;text-align:center;}
 
-#startBtn{ background:#000;color:#fff; }
-
-#homeRanking{
-margin-top:20px;
-background:#f3f4f6;
-padding:15px 25px;
-border-radius:12px;
-width:260px;
-text-align:left;
-}
-
-/* ゲーム */
-#game{
-display:none;background:#0f172a;color:white;
-min-height:100vh;text-align:center;
-}
-
-.board{
-display:grid;
-grid-template-columns:repeat(5,1fr);
-gap:10px;padding:10px;
-}
-
-.card{ aspect-ratio:3/4; perspective:800px; }
-.inner{
-width:100%;height:100%;
-transition:0.4s;transform-style:preserve-3d;
-position:relative;
-}
-.card.flip .inner{ transform:rotateY(180deg) scale(1.05); }
-
-.face{
-position:absolute;width:100%;height:100%;
-backface-visibility:hidden;
-}
-.face img{ width:100%;height:100%;border-radius:10px; }
-
-.front{ transform:rotateY(180deg); }
-.taken{ opacity:0.4; }
-
-/* 結果 */
-#result{
-position:fixed;top:0;left:0;
-width:100%;height:100%;
-display:none;justify-content:center;align-items:center;
-flex-direction:column;background:rgba(0,0,0,0.9);color:white;
-}
-
-#resultText{ font-size:42px;color:gold;margin-bottom:10px; }
-
-#nameInputArea{ margin:15px; }
-
-#playerName{
-padding:10px;
-font-size:18px;
-border-radius:6px;
-border:none;
-margin-right:10px;
-}
-
-.confetti{
-position:fixed;width:8px;height:12px;
-animation:fall linear forwards;
-}
-@keyframes fall{
-to{ transform:translateY(100vh) rotate(720deg); }
-}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:10px;}
+.card{aspect-ratio:3/4;perspective:800px;}
+.inner{width:100%;height:100%;transition:.4s;transform-style:preserve-3d;position:relative;}
+.card.flip .inner{transform:rotateY(180deg);}
+.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;}
+.front{transform:rotateY(180deg);}
+.face img{width:100%;height:100%;border-radius:10px;}
+.taken{opacity:.4;}
 </style>
-
 </head>
 
 <body>
@@ -101,121 +29,55 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <div id="startScreen">
 <div class="title">神経衰弱</div>
 
-<select id="mode" onchange="loadHomeRanking()">
-<option value="normal">通常モード</option>
-<option value="time">制限時間モード（30秒）</option>
-</select>
-
-<select id="difficulty" onchange="loadHomeRanking()">
+<select id="difficulty">
 <option value="easy">やさしい</option>
 <option value="normal" selected>ふつう</option>
 <option value="hard">むずかしい</option>
 <option value="oni">鬼モード👹</option>
 </select>
 
-<button id="startBtn" onclick="startGame()">あそぶ</button>
-
-<div id="homeRanking"></div>
+<button onclick="startGame()">スタート</button>
 </div>
 
 <div id="game">
-<h2 id="turnText">あなたのターン</h2>
-<p id="score">あなた:0 / CPU:0</p>
-<p id="timer">時間: 0秒</p>
+<h2 id="turnText"></h2>
+<p id="score"></p>
 <div class="board" id="board"></div>
 </div>
 
-<div id="result">
-<div id="resultText"></div>
-
-<select id="difficultyResult">
-<option value="easy">やさしい</option>
-<option value="normal">ふつう</option>
-<option value="hard">むずかしい</option>
-<option value="oni">鬼モード👹</option>
-</select>
-
-<div id="nameInputArea">
-<input id="playerName" placeholder="名前を入力" maxlength="10">
-<button onclick="submitScore()">登録</button>
-</div>
-
-<div id="ranking"></div>
-
-<button onclick="restartGame()">もう一度</button> <button onclick="goHome()">ホームに戻る</button>
-
-</div>
-
 <script>
-const baseCards=["AS","AH","KD","KC","QS"];
+const baseCards=["AS","AH","AD","AC","KS"];
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-let first=null, second=null, lock=false;
+let first=null,second=null,lock=false;
 let turn=0;
 let scores=[0,0];
 let memory={};
 let difficulty="normal";
-let mode="normal";
 
-let startTime=0;
-let timerInterval=null;
-let finalTime=0;
-let timeLimit=30;
-
-/* ランキング */
-function loadHomeRanking(){
-let mode=document.getElementById("mode").value;
-
-if(mode==="time"){
-document.getElementById("homeRanking").innerHTML="";
-return;
+/* 難易度設定 */
+function cpuLevel(){
+switch(difficulty){
+case "easy": return {memory:0.2, accuracy:0.3};
+case "normal": return {memory:0.5, accuracy:0.6};
+case "hard": return {memory:0.9, accuracy:0.9};
+case "oni": return {memory:1, accuracy:1};
 }
-
-let diff=document.getElementById("difficulty").value;
-let key="ranking_"+diff;
-let data=JSON.parse(localStorage.getItem(key))||[];
-
-let html="<b>ランキング</b>";
-data.forEach((d,i)=>{
-html+=`<p>${i+1}位 : ${d.name} - ${d.time}秒</p>`;
-});
-if(data.length===0) html+="<p>まだ記録なし</p>";
-
-document.getElementById("homeRanking").innerHTML=html;
 }
 
 function startGame(){
-clearInterval(timerInterval); // ★重要
-
 difficulty=document.getElementById("difficulty").value;
-mode=document.getElementById("mode").value;
-
 document.getElementById("startScreen").style.display="none";
 document.getElementById("game").style.display="block";
-
-startTime=Date.now();
-
-timerInterval=setInterval(()=>{
-let elapsed=Math.floor((Date.now()-startTime)/1000);
-
-if(mode==="time"){
-let remain=timeLimit - elapsed;
-document.getElementById("timer").textContent=`残り: ${remain}秒`;
-if(remain<=0) endGame();
-}else{
-document.getElementById("timer").textContent=`時間: ${elapsed}秒`;
-}
-},1000);
-
 init();
 }
 
 function init(){
 let board=document.getElementById("board");
 board.innerHTML="";
-first=null; second=null; lock=false;
-turn=0; scores=[0,0]; memory={};
+first=second=null;lock=false;
+turn=0;scores=[0,0];memory={};
 
 let deck=[...baseCards,...baseCards].sort(()=>Math.random()-0.5);
 
@@ -232,11 +94,12 @@ front.className="face front";
 front.innerHTML=`<img src="${getImg(c)}">`;
 
 let back=document.createElement("div");
-back.className="face back";
+back.className="face";
 back.innerHTML=`<img src="${backImg}">`;
 
 inner.append(front,back);
 card.appendChild(inner);
+
 card.onclick=()=>onClick(card);
 
 board.appendChild(card);
@@ -246,20 +109,14 @@ update();
 }
 
 function update(){
-document.getElementById("turnText").textContent =
-turn===0?"あなたのターン":"CPUのターン";
-
-document.getElementById("score").textContent =
-`あなた:${scores[0]} / CPU:${scores[1]}`;
+document.getElementById("turnText").textContent=turn===0?"あなた":"CPU";
+document.getElementById("score").textContent=`あなた:${scores[0]} / CPU:${scores[1]}`;
 }
 
 function onClick(card){
-if(turn!==0 || lock || card.classList.contains("flip") || card.classList.contains("taken")) return;
-
+if(turn!==0||lock||card.classList.contains("flip")||card.classList.contains("taken"))return;
 flip(card);
-
-if(!first){ first=card; return; }
-
+if(!first){first=card;return;}
 second=card;
 judge();
 }
@@ -268,12 +125,11 @@ function flip(card){
 card.classList.add("flip");
 let v=card.dataset.value;
 memory[v]=memory[v]||[];
-if(!memory[v].includes(card)) memory[v].push(card);
+if(!memory[v].includes(card))memory[v].push(card);
 }
 
 function judge(){
 lock=true;
-
 setTimeout(()=>{
 if(first.dataset.value===second.dataset.value){
 first.classList.add("taken");
@@ -289,70 +145,64 @@ reset(false);
 }
 
 function reset(success){
-first=null; second=null; lock=false;
-if(!success) turn=1-turn;
+first=second=null;lock=false;
+if(!success)turn=1-turn;
 update();
-
-if(checkEnd()) return;
-if(turn===1) setTimeout(cpu,700);
+if(checkEnd())return;
+if(turn===1)setTimeout(cpu,600);
 }
 
 function cpu(){
+let level=cpuLevel();
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
+
+// 👹鬼モード：完全解答
+if(difficulty==="oni"){
+for(let key in memory){
+let pair=memory[key].filter(c=>!c.classList.contains("taken"));
+if(pair.length>=2){
+play(pair[0],pair[1]);
+return;
+}
+}
+}
+
+// 記憶を使うか
+if(Math.random()<level.memory){
+for(let key in memory){
+let known=memory[key].filter(c=>!c.classList.contains("taken"));
+if(known.length>=2 && Math.random()<level.accuracy){
+play(known[0],known[1]);
+return;
+}
+}
+}
+
+// ランダム
 let c1=choices[Math.floor(Math.random()*choices.length)];
 let rest=choices.filter(c=>c!==c1);
 let c2=rest[Math.floor(Math.random()*rest.length)];
+play(c1,c2);
+}
 
-flip(c1); first=c1;
-
+function play(c1,c2){
+flip(c1);first=c1;
 setTimeout(()=>{
-flip(c2); second=c2;
+flip(c2);second=c2;
 judge();
 },400);
 }
 
 function checkEnd(){
 if(document.querySelectorAll(".taken").length===10){
-setTimeout(endGame,300);
+setTimeout(()=>{
+alert(scores[0]>scores[1]?"勝ち！":"負け…");
+location.reload();
+},300);
 return true;
 }
 return false;
 }
-
-function endGame(){
-clearInterval(timerInterval);
-finalTime=Math.floor((Date.now()-startTime)/1000);
-
-let text="";
-let win=false;
-
-if(scores[0]>scores[1]){ text="あなたの勝ち！🎉"; win=true; }
-else if(scores[1]>scores[0]) text="CPUの勝ち…👹";
-else text="引き分け！";
-
-document.getElementById("resultText").textContent =
-`${text}（${finalTime}秒）`;
-
-document.getElementById("result").style.display="flex";
-}
-
-function restartGame(){
-clearInterval(timerInterval); // ★ここも重要
-document.getElementById("result").style.display="none";
-startGame();
-}
-
-function goHome(){
-clearInterval(timerInterval);
-document.getElementById("result").style.display="none";
-document.getElementById("game").style.display="none";
-document.getElementById("startScreen").style.display="flex";
-document.getElementById("timer").textContent="時間: 0秒";
-loadHomeRanking();
-}
-
-/* 初期 */
-loadHomeRanking();
 </script>
 
 </body>

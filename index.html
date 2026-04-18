@@ -27,7 +27,6 @@ button:active{ transform:scale(0.9); }
 
 #startBtn{ background:#000;color:#fff; }
 
-/* ランキング（ホーム） */
 #homeRanking{
 margin-top:20px;
 background:#f3f4f6;
@@ -102,7 +101,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <div id="startScreen">
 <div class="title">神経衰弱</div>
 
-<select id="mode">
+<select id="mode" onchange="loadHomeRanking()">
 <option value="normal">通常モード</option>
 <option value="time">制限時間モード（30秒）</option>
 </select>
@@ -164,8 +163,15 @@ let timerInterval=null;
 let finalTime=0;
 let timeLimit=30;
 
-/* ホームランキング表示 */
+/* ★モード対応ランキング */
 function loadHomeRanking(){
+let mode=document.getElementById("mode").value;
+
+if(mode==="time"){
+document.getElementById("homeRanking").innerHTML="";
+return;
+}
+
 let diff=document.getElementById("difficulty").value;
 let key="ranking_"+diff;
 let data=JSON.parse(localStorage.getItem(key))||[];

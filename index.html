@@ -8,37 +8,27 @@
 <style>
 body { margin:0; font-family:sans-serif; }
 
-/* スタート画面 */
 #startScreen{
 position:fixed;width:100%;height:100%;
 display:flex;flex-direction:column;
 justify-content:center;align-items:center;
 background:#fff;
 }
-
 .title{ font-size:60px; margin-bottom:30px; }
 
-/* ★スタートボタン強化 */
 #startBtn{
 font-size:32px;
 padding:20px 80px;
 border:none;
 border-radius:15px;
-background:#000;
-color:#fff;
+background:#000;color:#fff;
 cursor:pointer;
 transition:0.2s;
 }
 #startBtn:hover{ transform:scale(1.1); }
-#startBtn:active{ transform:scale(0.95); }
 
-select{
-padding:12px;
-margin:10px;
-font-size:18px;
-}
+select{ padding:12px; margin:10px; font-size:18px; }
 
-/* ゲーム */
 #game{
 display:none;background:#0f172a;color:white;
 min-height:100vh;text-align:center;
@@ -58,7 +48,6 @@ gap:10px;padding:10px;
 .front{ transform:rotateY(180deg); }
 .taken{ opacity:0.4; }
 
-/* 結果 */
 #result{
 position:fixed;top:0;left:0;
 width:100%;height:100%;
@@ -70,15 +59,6 @@ color:white;
 z-index:999;
 }
 
-#result h2{ font-size:40px; }
-
-#result button{
-margin:10px;
-padding:12px 30px;
-font-size:18px;
-}
-
-/* 紙吹雪 */
 .confetti{
 position:fixed;width:8px;height:12px;
 animation:fall linear forwards;
@@ -119,19 +99,41 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* ★安全なカードセット */
-const baseCards = [
-"AS","AH","AC","AD",
-"KS","KH","KC","KD",
-"QS","QH","QC","QD"
-];
+/* カード（ランクごとに整理） */
+const cardGroups = {
+A:["AS","AH","AC","AD"],
+K:["KS","KH","KC","KD"],
+Q:["QS","QH","QC","QD"]
+};
 
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
+/* ★バランス選択 */
+function getBalancedCards(count){
+let result=[];
+let keys=Object.keys(cardGroups);
+
+/* 均等配分 */
+while(result.length < count){
+for(let k of keys){
+if(result.length >= count) break;
+
+let group=cardGroups[k];
+let card=group[Math.floor(Math.random()*group.length)];
+
+if(!result.includes(card)){
+result.push(card);
+}
+}
+}
+
+/* 最後シャッフル */
+return result.sort(()=>Math.random()-0.5);
+}
+
 let stage=1;
 let difficulty="normal";
-
 let pairCounts=[5,8,12];
 
 let first=null, second=null, lock=false;
@@ -151,7 +153,9 @@ init();
 
 function init(){
 let pair=pairCounts[stage-1];
-let cards=baseCards.slice(0,pair);
+
+/* ★ここが完全修正 */
+let cards=getBalancedCards(pair);
 
 let deck=[...cards,...cards].sort(()=>Math.random()-0.5);
 
@@ -173,8 +177,6 @@ inner.className="inner";
 
 let front=document.createElement("div");
 front.className="face front";
-
-/* ★画像エラー対策 */
 front.innerHTML=`<img src="${getImg(c)}" onerror="this.src='${backImg}'">`;
 
 let back=document.createElement("div");
@@ -203,7 +205,6 @@ function onClick(card){
 if(turn!==0 || lock || card.classList.contains("flip") || card.classList.contains("taken")) return;
 
 flip(card);
-
 if(!first){ first=card; return; }
 second=card;
 judge();
@@ -218,7 +219,6 @@ if(!memory[v].includes(card)) memory[v].push(card);
 
 function judge(){
 lock=true;
-
 setTimeout(()=>{
 if(first.dataset.value===second.dataset.value){
 first.classList.add("taken");
@@ -280,7 +280,6 @@ c2=rest[Math.floor(Math.random()*rest.length)];
 }
 
 flip(c1); first=c1;
-
 setTimeout(()=>{
 flip(c2); second=c2;
 judge();
@@ -297,7 +296,6 @@ return false;
 
 function endGame(){
 let win = scores[0] > scores[1];
-
 let text = win ? "ステージクリア！🎉" : "負けた…";
 
 if(win && stage===3){
@@ -326,7 +324,6 @@ document.getElementById("game").style.display="none";
 document.getElementById("startScreen").style.display="flex";
 }
 
-/* 🎉 紙吹雪 */
 function confetti(){
 for(let i=0;i<150;i++){
 let c=document.createElement("div");
@@ -335,7 +332,6 @@ c.style.left=Math.random()*100+"%";
 c.style.background=`hsl(${Math.random()*360},100%,50%)`;
 c.style.animationDuration=(2+Math.random()*3)+"s";
 document.body.appendChild(c);
-
 setTimeout(()=>c.remove(),4000);
 }
 }

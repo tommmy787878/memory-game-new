@@ -8,18 +8,13 @@
 
 <style>
 body { margin:0; font-family:sans-serif; }
-
-/* スタート */
 #startScreen{
 position:fixed;width:100%;height:100%;
 background:#fff;display:flex;
 flex-direction:column;justify-content:center;align-items:center;
 }
-
 .title{ font-size:60px; letter-spacing:8px; margin-bottom:30px; }
-
 select{ padding:14px 24px; margin-bottom:25px; font-size:22px; }
-
 button{
 padding:18px 60px;font-size:24px;
 border:none;border-radius:10px;
@@ -27,21 +22,17 @@ cursor:pointer;transition:0.2s;
 }
 button:hover{ transform:scale(1.05); }
 button:active{ transform:scale(0.9); }
-
 #startBtn{ background:#000;color:#fff; }
 
-/* ゲーム */
 #game{
 display:none;background:#0f172a;color:white;
 min-height:100vh;text-align:center;
 }
-
 .board{
 display:grid;
 grid-template-columns:repeat(5,1fr);
 gap:10px;padding:10px;
 }
-
 .card{ aspect-ratio:3/4; perspective:800px; }
 .inner{
 width:100%;height:100%;
@@ -49,27 +40,22 @@ transition:0.4s;transform-style:preserve-3d;
 position:relative;
 }
 .card.flip .inner{ transform:rotateY(180deg) scale(1.05); }
-
 .face{
 position:absolute;width:100%;height:100%;
 backface-visibility:hidden;
 }
 .face img{ width:100%;height:100%;border-radius:10px; }
-
 .front{ transform:rotateY(180deg); }
 .taken{ opacity:0.4; }
 
-/* 結果 */
 #result{
 position:fixed;top:0;left:0;
 width:100%;height:100%;
 display:none;justify-content:center;align-items:center;
 flex-direction:column;background:rgba(0,0,0,0.9);color:white;
 }
-
 #resultText{ font-size:42px;color:gold;margin-bottom:10px; }
 
-/* 入力UI */
 #nameInputArea{ margin:15px; }
 
 #playerName{
@@ -150,6 +136,9 @@ let startTime=0;
 let timerInterval=null;
 let finalTime=0;
 
+/* 👹 鬼専用：全カード記憶 */
+let oniVision={};
+
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
 document.getElementById("startScreen").style.display="none";
@@ -169,6 +158,7 @@ let board=document.getElementById("board");
 board.innerHTML="";
 first=null; second=null; lock=false;
 turn=0; scores=[0,0]; memory={};
+oniVision={};
 
 let deck=[...baseCards,...baseCards].sort(()=>Math.random()-0.5);
 
@@ -176,6 +166,10 @@ deck.forEach(c=>{
 let card=document.createElement("div");
 card.className="card";
 card.dataset.value=c;
+
+/* 👹 全部記憶（未来予知） */
+oniVision[c]=oniVision[c]||[];
+oniVision[c].push(card);
 
 let inner=document.createElement("div");
 inner.className="inner";
@@ -250,11 +244,30 @@ if(checkEnd()) return;
 if(turn===1) setTimeout(cpu,700);
 }
 
-/* ===== ここだけ強化済みCPU ===== */
+/* 👹未来予知CPU */
 function cpu(){
+
+// 鬼モード：完全チート
+if(difficulty==="oni"){
+for(let key in oniVision){
+let pair = oniVision[key].filter(c=>!c.classList.contains("taken"));
+if(pair.length===2){
+first=pair[0];
+flip(first);
+
+setTimeout(()=>{
+second=pair[1];
+flip(second);
+judge();
+},200);
+return;
+}
+}
+}
+
+// ↓以下は通常ロジック
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
-// 記憶からペア取得
 let knownPair=null;
 for(let key in memory){
 let known = memory[key].filter(c=>!c.classList.contains("taken"));
@@ -264,36 +277,12 @@ break;
 }
 }
 
-// 難易度判定
 let useMemory=false;
 
-if(difficulty==="easy"){
-useMemory=false;
-}
-else if(difficulty==="normal"){
-useMemory = Math.random()<0.5;
-}
-else if(difficulty==="hard"){
-useMemory = true;
-}
-else if(difficulty==="oni"){
-useMemory = true;
-}
+if(difficulty==="easy") useMemory=false;
+else if(difficulty==="normal") useMemory=Math.random()<0.5;
+else useMemory=true;
 
-// 👹鬼モード（最強）
-if(difficulty==="oni" && knownPair){
-first = knownPair[0];
-flip(first);
-
-setTimeout(()=>{
-second = knownPair[1];
-flip(second);
-judge();
-},200);
-return;
-}
-
-// 記憶使用
 if(useMemory && knownPair){
 first = knownPair[0];
 flip(first);
@@ -306,25 +295,7 @@ judge();
 return;
 }
 
-// 推理（hard以上）
 let c1=choices[Math.floor(Math.random()*choices.length)];
-
-if((difficulty==="hard" || difficulty==="oni") && memory[c1.dataset.value]){
-let mem = memory[c1.dataset.value].find(c=>!c.classList.contains("taken") && c!==c1);
-if(mem){
-first=c1;
-flip(first);
-
-setTimeout(()=>{
-second=mem;
-flip(second);
-judge();
-},300);
-return;
-}
-}
-
-// 完全ランダム
 let rest=choices.filter(c=>c!==c1);
 let c2=rest[Math.floor(Math.random()*rest.length)];
 
@@ -335,7 +306,6 @@ flip(c2); second=c2;
 judge();
 },400);
 }
-/* ===== ここまで ===== */
 
 function checkEnd(){
 if(document.querySelectorAll(".taken").length===10){
@@ -350,7 +320,9 @@ clearInterval(timerInterval);
 finalTime=Math.floor((Date.now()-startTime)/1000);
 
 let text="";
-if(scores[0]>scores[1]) text="あなたの勝ち！🎉";
+let win=false;
+
+if(scores[0]>scores[1]){ text="あなたの勝ち！🎉"; win=true; }
 else if(scores[1]>scores[0]) text="CPUの勝ち…👹";
 else text="引き分け！";
 
@@ -360,10 +332,18 @@ document.getElementById("resultText").textContent =
 document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
 
+/* 👇 勝った時だけ入力表示 */
+let inputArea=document.getElementById("nameInputArea");
+if(win){
+inputArea.style.display="block";
 document.getElementById("playerName").value =
 localStorage.getItem("playerName") || "";
+}else{
+inputArea.style.display="none";
+}
 
 document.querySelectorAll(".confetti").forEach(e=>e.remove());
+if(win){
 for(let i=0;i<50;i++){
 let c=document.createElement("div");
 c.className="confetti";
@@ -374,15 +354,14 @@ document.body.appendChild(c);
 setTimeout(()=>c.remove(),2000);
 }
 }
+}
 
 function submitScore(){
 let name=document.getElementById("playerName").value.trim();
 if(!name) name="名無し";
 
 localStorage.setItem("playerName", name);
-
 saveScore(name, finalTime);
-
 document.getElementById("nameInputArea").innerHTML="<p>登録完了！</p>";
 }
 
@@ -417,6 +396,7 @@ document.getElementById("result").style.display="none";
 
 document.getElementById("nameInputArea").innerHTML=
 '<input id="playerName" placeholder="名前を入力" maxlength="10"><button onclick="submitScore()">登録</button>';
+document.getElementById("nameInputArea").style.display="block";
 
 startGame();
 }

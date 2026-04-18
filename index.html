@@ -7,19 +7,24 @@
 <title>神経衰弱</title>
 
 <style>
-body{margin:0;font-family:sans-serif}
+html,body{
+margin:0;
+height:100%;
+overflow:hidden;
+font-family:sans-serif;
+}
 
-/* タイトルアニメ */
+/* ===== タイトル ===== */
 .title{
-font-size:64px;
-animation:titleAnim 1.5s ease;
+font-size:clamp(28px,8vw,64px);
+animation:titleAnim 1.2s ease;
 }
 @keyframes titleAnim{
 0%{opacity:0;transform:scale(0.5);}
 100%{opacity:1;transform:scale(1);}
 }
 
-/* スタート */
+/* ===== スタート ===== */
 #startScreen{
 position:fixed;width:100%;height:100%;
 display:flex;flex-direction:column;
@@ -28,51 +33,96 @@ background:#fff;
 }
 
 select,button,input{
-padding:12px;
-font-size:20px;
-margin:10px;
+padding:10px;
+font-size:clamp(14px,4vw,20px);
+margin:6px;
 }
 
 /* ボタン */
 button{
-border:none;
-border-radius:10px;
+border:none;border-radius:10px;
 cursor:pointer;
 transition:0.2s;
 }
 button:hover{transform:scale(1.05);}
 button:active{transform:scale(0.9);}
 
-/* ゲーム */
+/* ===== ゲーム ===== */
 #game{
 display:none;
+height:100%;
 background:#0f172a;
 color:white;
 text-align:center;
-min-height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
 }
 
-.board{display:grid;gap:10px;padding:10px;}
-.card{aspect-ratio:3/4;perspective:800px;}
-.inner{width:100%;height:100%;transition:0.4s;transform-style:preserve-3d;}
-.card.flip .inner{transform:rotateY(180deg);}
-.face{position:absolute;width:100%;height:100%;backface-visibility:hidden;}
-.face img{width:100%;height:100%;border-radius:10px;}
+h2,h3,p{
+margin:4px;
+font-size:clamp(14px,4vw,20px);
+}
+
+/* ボード */
+.board{
+display:grid;
+gap:6px;
+padding:6px;
+height:70vh;
+}
+
+.card{
+aspect-ratio:3/4;
+width:100%;
+perspective:800px;
+}
+
+.inner{
+width:100%;height:100%;
+transition:0.4s;
+transform-style:preserve-3d;
+position:relative;
+}
+
+.card.flip .inner{
+transform:rotateY(180deg) scale(1.05);
+}
+
+.face{
+position:absolute;
+width:100%;height:100%;
+backface-visibility:hidden;
+}
+
+.face img{
+width:100%;
+height:100%;
+border-radius:8px;
+}
+
 .front{transform:rotateY(180deg);}
 .taken{opacity:0.4;}
 
-/* 結果 */
+/* ===== 結果 ===== */
 #result{
 position:fixed;width:100%;height:100%;
-display:none;justify-content:center;
-align-items:center;flex-direction:column;
-background:rgba(0,0,0,0.9);color:white;
+display:none;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,0.9);
+color:white;
 }
 
-/* 名前入力 */
 #nameBox{
 background:#fff;color:#000;
-padding:20px;border-radius:12px;
+padding:10px;
+border-radius:10px;
+}
+
+#ranking{
+font-size:clamp(12px,3.5vw,18px);
 }
 </style>
 
@@ -93,8 +143,8 @@ padding:20px;border-radius:12px;
 </select>
 
 <select id="mode">
-<option value="normal">通常モード</option>
-<option value="time">制限時間モード</option>
+<option value="normal">通常</option>
+<option value="time">制限時間</option>
 </select>
 
 <button onclick="startGame()">あそぶ</button>
@@ -118,14 +168,14 @@ padding:20px;border-radius:12px;
 <p id="timeText"></p>
 
 <div id="nameBox">
-<input id="playerName" placeholder="名前">
+<input id="playerName" placeholder="名前" maxlength="10">
 <br>
 <button onclick="saveScore()">決定</button>
 </div>
 
 <div id="ranking"></div>
 
-<button onclick="restart()">もう一度あそぶ</button>
+<button onclick="restart()">もう一度</button>
 
 </div>
 
@@ -140,7 +190,7 @@ oni:["AS","AH","KD","KC","QS","QD","JC","JD","10S","10H"]
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-let difficulty,mode,stage=1;
+let difficulty,mode,stage;
 let first,second,lock,turn,scores,memory;
 let startTime,timerInterval;
 
@@ -150,7 +200,7 @@ difficulty=document.getElementById("difficulty").value;
 mode=document.getElementById("mode").value;
 
 document.getElementById("startScreen").style.display="none";
-document.getElementById("game").style.display="block";
+document.getElementById("game").style.display="flex";
 
 stage=1;
 startTimer();
@@ -167,7 +217,7 @@ function updateTimer(){
 let t=Math.floor((Date.now()-startTime)/1000);
 document.getElementById("timer").textContent=`タイム:${t}`;
 
-if(mode==="time" && t>= (difficulty==="oni"?45:60)){
+if(mode==="time" && t>=(difficulty==="oni"?45:60)){
 endGame(true);
 }
 }
@@ -185,7 +235,8 @@ document.getElementById("stageText").textContent=`ステージ ${stage}`;
 let base=cardSets[difficulty];
 let deck=[...base,...base].sort(()=>Math.random()-0.5);
 
-board.style.gridTemplateColumns=`repeat(${Math.sqrt(deck.length)},1fr)`;
+let cols=Math.ceil(Math.sqrt(deck.length));
+board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
 
 deck.forEach(c=>{
 let card=document.createElement("div");
@@ -244,10 +295,7 @@ reset(true);
 }else{
 first.classList.remove("flip");
 second.classList.remove("flip");
-
-/* 鬼モードはCPUにターン行きやすい */
 if(difficulty==="oni") turn=1;
-
 reset(false);
 }
 },500);
@@ -267,7 +315,6 @@ function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 let c1,c2;
 
-/* 鬼は完全記憶 */
 let pair=Object.values(memory).find(v=>v.length===2&&!v[0].classList.contains("taken"));
 if(pair){[c1,c2]=pair;}
 
@@ -278,7 +325,6 @@ do{c2=choices[Math.floor(Math.random()*choices.length)];
 }
 
 flip(c1);first=c1;
-
 setTimeout(()=>{
 flip(c2);second=c2;
 judge();
@@ -290,7 +336,7 @@ let total=document.querySelectorAll(".card").length;
 if(document.querySelectorAll(".taken").length===total){
 stage++;
 if(stage<=3){
-setTimeout(init,800);
+setTimeout(init,700);
 }else{
 setTimeout(()=>endGame(false),300);
 }
@@ -304,9 +350,9 @@ function endGame(timeout=false){
 clearInterval(timerInterval);
 
 let time=Math.floor((Date.now()-startTime)/1000);
-let text=timeout?"時間切れ！":
-(scores[0]>scores[1]?"勝ち！🎉":
-scores[1]>scores[0]?"負け！":"引き分け");
+let text=timeout?"時間切れ":
+(scores[0]>scores[1]?"勝ち！":
+scores[1]>scores[0]?"負け":"引き分け");
 
 document.getElementById("resultText").textContent=text;
 document.getElementById("timeText").textContent=`タイム:${time}秒`;
@@ -339,4 +385,3 @@ location.reload();
 
 </body>
 </html>
-

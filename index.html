@@ -136,9 +136,6 @@ let startTime=0;
 let timerInterval=null;
 let finalTime=0;
 
-/* 👹 鬼専用：全カード記憶 */
-let oniVision={};
-
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
 document.getElementById("startScreen").style.display="none";
@@ -158,7 +155,6 @@ let board=document.getElementById("board");
 board.innerHTML="";
 first=null; second=null; lock=false;
 turn=0; scores=[0,0]; memory={};
-oniVision={};
 
 let deck=[...baseCards,...baseCards].sort(()=>Math.random()-0.5);
 
@@ -166,10 +162,6 @@ deck.forEach(c=>{
 let card=document.createElement("div");
 card.className="card";
 card.dataset.value=c;
-
-/* 👹 全部記憶（未来予知） */
-oniVision[c]=oniVision[c]||[];
-oniVision[c].push(card);
 
 let inner=document.createElement("div");
 inner.className="inner";
@@ -244,28 +236,9 @@ if(checkEnd()) return;
 if(turn===1) setTimeout(cpu,700);
 }
 
-/* 👹未来予知CPU */
+/* 👹弱体化済み鬼CPU */
 function cpu(){
 
-// 鬼モード：完全チート
-if(difficulty==="oni"){
-for(let key in oniVision){
-let pair = oniVision[key].filter(c=>!c.classList.contains("taken"));
-if(pair.length===2){
-first=pair[0];
-flip(first);
-
-setTimeout(()=>{
-second=pair[1];
-flip(second);
-judge();
-},200);
-return;
-}
-}
-}
-
-// ↓以下は通常ロジック
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
 let knownPair=null;
@@ -279,9 +252,18 @@ break;
 
 let useMemory=false;
 
-if(difficulty==="easy") useMemory=false;
-else if(difficulty==="normal") useMemory=Math.random()<0.5;
-else useMemory=true;
+if(difficulty==="easy"){
+useMemory=false;
+}
+else if(difficulty==="normal"){
+useMemory=Math.random()<0.5;
+}
+else if(difficulty==="hard"){
+useMemory=true;
+}
+else if(difficulty==="oni"){
+useMemory=Math.random()<0.8;
+}
 
 if(useMemory && knownPair){
 first = knownPair[0];
@@ -291,11 +273,28 @@ setTimeout(()=>{
 second = knownPair[1];
 flip(second);
 judge();
-},400);
+}, difficulty==="oni"?350:400);
 return;
 }
 
 let c1=choices[Math.floor(Math.random()*choices.length)];
+
+if((difficulty==="hard" || difficulty==="oni") && memory[c1.dataset.value]){
+let mem = memory[c1.dataset.value].find(c=>!c.classList.contains("taken") && c!==c1);
+
+if(mem && (difficulty!=="oni" || Math.random()<0.8)){
+first=c1;
+flip(first);
+
+setTimeout(()=>{
+second=mem;
+flip(second);
+judge();
+},300);
+return;
+}
+}
+
 let rest=choices.filter(c=>c!==c1);
 let c2=rest[Math.floor(Math.random()*rest.length)];
 
@@ -332,7 +331,7 @@ document.getElementById("resultText").textContent =
 document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
 
-/* 👇 勝った時だけ入力表示 */
+/* 勝った時だけ入力 */
 let inputArea=document.getElementById("nameInputArea");
 if(win){
 inputArea.style.display="block";

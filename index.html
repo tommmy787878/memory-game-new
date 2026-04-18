@@ -14,7 +14,7 @@ background:#fff;display:flex;
 flex-direction:column;justify-content:center;align-items:center;
 }
 .title{ font-size:60px; letter-spacing:8px; margin-bottom:30px; }
-select{ padding:14px 24px; margin-bottom:25px; font-size:22px; }
+select{ padding:14px 24px; margin-bottom:15px; font-size:22px; }
 button{
 padding:18px 60px;font-size:24px;
 border:none;border-radius:10px;
@@ -82,6 +82,11 @@ to{ transform:translateY(100vh) rotate(720deg); }
 <div id="startScreen">
 <div class="title">神経衰弱</div>
 
+<select id="mode">
+<option value="normal">通常モード</option>
+<option value="time">制限時間モード（30秒）</option>
+</select>
+
 <select id="difficulty">
 <option value="easy">やさしい</option>
 <option value="normal" selected>ふつう</option>
@@ -131,20 +136,35 @@ let turn=0;
 let scores=[0,0];
 let memory={};
 let difficulty="normal";
+let mode="normal";
 
 let startTime=0;
 let timerInterval=null;
 let finalTime=0;
+let timeLimit=30; // ★30秒固定
 
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
+mode=document.getElementById("mode").value;
+
 document.getElementById("startScreen").style.display="none";
 document.getElementById("game").style.display="block";
 
 startTime=Date.now();
+
 timerInterval=setInterval(()=>{
-let t=Math.floor((Date.now()-startTime)/1000);
-document.getElementById("timer").textContent=`時間: ${t}秒`;
+let elapsed=Math.floor((Date.now()-startTime)/1000);
+
+if(mode==="time"){
+let remain=timeLimit - elapsed;
+document.getElementById("timer").textContent=`残り: ${remain}秒`;
+
+if(remain<=0){
+endGame();
+}
+}else{
+document.getElementById("timer").textContent=`時間: ${elapsed}秒`;
+}
 },1000);
 
 init();
@@ -236,7 +256,7 @@ if(checkEnd()) return;
 if(turn===1) setTimeout(cpu,700);
 }
 
-/* 👹弱体化済み鬼CPU */
+/* 👹バランス調整済みCPU */
 function cpu(){
 
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
@@ -331,7 +351,6 @@ document.getElementById("resultText").textContent =
 document.getElementById("difficultyResult").value=difficulty;
 document.getElementById("result").style.display="flex";
 
-/* 勝った時だけ入力 */
 let inputArea=document.getElementById("nameInputArea");
 if(win){
 inputArea.style.display="block";

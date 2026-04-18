@@ -37,6 +37,7 @@ min-height:100vh;text-align:center;
 .board{
 display:grid;
 gap:10px;padding:10px;
+max-width:600px;margin:auto;
 }
 
 .card{ aspect-ratio:3/4; perspective:800px; }
@@ -99,22 +100,23 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* カード（ランクごとに整理） */
+/* ★カード種類（7・8追加済み） */
 const cardGroups = {
 A:["AS","AH","AC","AD"],
 K:["KS","KH","KC","KD"],
-Q:["QS","QH","QC","QD"]
+Q:["QS","QH","QC","QD"],
+"8":["8S","8H","8C","8D"],
+"7":["7S","7H","7C","7D"]
 };
 
 const getImg=c=>`https://deckofcardsapi.com/static/img/${c}.png`;
 const backImg="https://deckofcardsapi.com/static/img/back.png";
 
-/* ★バランス選択 */
+/* カード選出 */
 function getBalancedCards(count){
 let result=[];
 let keys=Object.keys(cardGroups);
 
-/* 均等配分 */
 while(result.length < count){
 for(let k of keys){
 if(result.length >= count) break;
@@ -127,8 +129,6 @@ result.push(card);
 }
 }
 }
-
-/* 最後シャッフル */
 return result.sort(()=>Math.random()-0.5);
 }
 
@@ -153,15 +153,11 @@ init();
 
 function init(){
 let pair=pairCounts[stage-1];
-
-/* ★ここが完全修正 */
 let cards=getBalancedCards(pair);
-
 let deck=[...cards,...cards].sort(()=>Math.random()-0.5);
 
 let board=document.getElementById("board");
 board.innerHTML="";
-
 board.style.gridTemplateColumns=`repeat(${Math.ceil(Math.sqrt(pair*2))},1fr)`;
 
 first=null; second=null; lock=false;
@@ -335,6 +331,7 @@ document.body.appendChild(c);
 setTimeout(()=>c.remove(),4000);
 }
 }
+
 </script>
 
 </body>

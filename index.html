@@ -100,7 +100,7 @@ to{ transform:translateY(100vh) rotate(720deg); }
 
 <script>
 
-/* ★カード種類（7・8追加済み） */
+/* カード種類 */
 const cardGroups = {
 A:["AS","AH","AC","AD"],
 K:["KS","KH","KC","KD"],
@@ -120,13 +120,9 @@ let keys=Object.keys(cardGroups);
 while(result.length < count){
 for(let k of keys){
 if(result.length >= count) break;
-
 let group=cardGroups[k];
 let card=group[Math.floor(Math.random()*group.length)];
-
-if(!result.includes(card)){
-result.push(card);
-}
+if(!result.includes(card)) result.push(card);
 }
 }
 return result.sort(()=>Math.random()-0.5);
@@ -144,10 +140,8 @@ let memory={};
 function startGame(){
 difficulty=document.getElementById("difficulty").value;
 stage=1;
-
 document.getElementById("startScreen").style.display="none";
 document.getElementById("game").style.display="block";
-
 init();
 }
 
@@ -238,20 +232,21 @@ if(checkEnd()) return;
 if(turn===1) setTimeout(cpu,600);
 }
 
+/* ★鬼ちょうどいい弱体化 */
 function cpu(){
 let choices=[...document.querySelectorAll(".card:not(.flip):not(.taken)")];
 
 let useMemory=false;
 if(difficulty==="normal") useMemory=Math.random()<0.5;
 if(difficulty==="hard") useMemory=true;
-if(difficulty==="oni") useMemory=Math.random()<0.8;
+if(difficulty==="oni") useMemory=Math.random()<0.5;
 
 let knownPair=null;
 
 if(useMemory){
 for(let key in memory){
 let cards=memory[key].filter(c=>!c.classList.contains("taken"));
-if(cards.length>=2){
+if(cards.length>=2 && Math.random()<0.7){
 knownPair=cards;
 break;
 }
@@ -267,7 +262,7 @@ c2=knownPair[1];
 c1=choices[Math.floor(Math.random()*choices.length)];
 let rest=choices.filter(c=>c!==c1);
 
-if(difficulty==="oni" && Math.random()<0.7){
+if(difficulty==="oni" && Math.random()<0.25){
 let match=rest.find(c=>c.dataset.value===c1.dataset.value);
 c2=match || rest[Math.floor(Math.random()*rest.length)];
 }else{
@@ -333,6 +328,5 @@ setTimeout(()=>c.remove(),4000);
 }
 
 </script>
-
 </body>
 </html>
